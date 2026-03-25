@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-          © 2026 Lib-System. All rights reserved.
+          © 2026 Lumina Library. All rights reserved.
         </footer>
       </body>
     </html>

@@ -31,26 +31,21 @@ const navLinks = [
 ];
 
 const categories = [
-  { icon: BookMarked, label: "Fiction", count: "2.4k", color: "text-rose-500", bg: "bg-rose-50" },
-  { icon: GraduationCap, label: "Academic", count: "1.8k", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: FlaskConical, label: "Science", count: "960", color: "text-emerald-500", bg: "bg-emerald-50" },
-  { icon: Cpu, label: "Technology", count: "1.2k", color: "text-slate-500", bg: "bg-slate-100" },
-  { icon: Palette, label: "Arts & Design", count: "850", color: "text-purple-500", bg: "bg-purple-50" },
-  { icon: Music, label: "Music", count: "420", color: "text-indigo-500", bg: "bg-indigo-50" },
-  { icon: Heart, label: "Health", count: "730", color: "text-pink-500", bg: "bg-pink-50" },
-  { icon: Briefcase, label: "Business", count: "1.1k", color: "text-amber-600", bg: "bg-amber-50" },
-  { icon: Calculator, label: "Mathematics", count: "540", color: "text-cyan-600", bg: "bg-cyan-50" },
-  { icon: Gamepad2, label: "Entertainment", count: "680", color: "text-orange-500", bg: "bg-orange-50" },
-  { icon: Users, label: "Social Sciences", count: "920", color: "text-teal-600", bg: "bg-teal-50" },
-  { icon: Layers, label: "History", count: "1.4k", color: "text-brown-600", bg: "bg-stone-100" },
+  { icon: BookMarked, label: "Fiction", count: "{fiction_count}", color: "text-rose-500", bg: "bg-rose-50" },
+  { icon: GraduationCap, label: "Academic", count: "{academic_count}", color: "text-blue-500", bg: "bg-blue-50" },
+  { icon: FlaskConical, label: "Science", count: "{science_count}", color: "text-emerald-500", bg: "bg-emerald-50" },
+  { icon: Cpu, label: "Technology", count: "{tech_count}", color: "text-slate-500", bg: "bg-slate-100" },
+  { icon: Palette, label: "Arts & Design", count: "{arts_count}", color: "text-purple-500", bg: "bg-purple-50" },
+  { icon: Music, label: "Music", count: "{music_count}", color: "text-indigo-500", bg: "bg-indigo-50" },
+  { icon: Heart, label: "Health", count: "{health_count}", color: "text-pink-500", bg: "bg-pink-50" },
+  { icon: Briefcase, label: "Business", count: "{business_count}", color: "text-amber-600", bg: "bg-amber-50" },
+  { icon: Calculator, label: "Mathematics", count: "{math_count}", color: "text-cyan-600", bg: "bg-cyan-50" },
+  { icon: Gamepad2, label: "Entertainment", count: "{entertainment_count}", color: "text-orange-500", bg: "bg-orange-50" },
+  { icon: Users, label: "Social Sciences", count: "{social_science_count}", color: "text-teal-600", bg: "bg-teal-50" },
+  { icon: Layers, label: "History", count: "{history_count}", color: "text-brown-600", bg: "bg-stone-100" },
 ];
 
-const quickSearchSuggestions = [
-  "React Design Patterns",
-  "Machine Learning Basics",
-  "World History",
-  "Modern Architecture",
-];
+const quickSearchSuggestions: string[] = [];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -68,6 +63,11 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery("");
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = mobileOpen || searchOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -80,13 +80,13 @@ export default function Navbar() {
         setSearchOpen((v) => !v);
       }
       if (e.key === "Escape") {
-        setSearchOpen(false);
+        closeSearch();
         setMegaOpen(false);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [closeSearch]);
 
   useEffect(() => {
     if (searchOpen) setTimeout(() => searchInputRef.current?.focus(), 100);
@@ -134,9 +134,9 @@ export default function Navbar() {
             <div className="relative flex flex-col leading-none">
               <span className="text-[1.15rem] font-extrabold tracking-tight">
                 <span className="bg-gradient-to-r from-indigo-700 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Lib
+                  Lumina
                 </span>
-                <span className="text-gray-800">-System</span>
+                <span className="text-gray-800"> Library</span>
               </span>
               <span className="mt-0.5 text-[10px] font-medium tracking-widest text-gray-400 uppercase">
                 Digital Library
@@ -264,7 +264,7 @@ export default function Navbar() {
       <div
         className={`fixed inset-0 z-[60] bg-black/50 backdrop-blur-md transition-opacity duration-300 ${searchOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
-        onClick={() => setSearchOpen(false)}
+        onClick={closeSearch}
       />
       <div
         className={`fixed inset-x-0 top-0 z-[70] flex justify-center pt-[10vh] px-4 transition-all duration-400 ${searchOpen
@@ -285,7 +285,7 @@ export default function Navbar() {
               className="flex-1 bg-transparent text-lg font-bold text-gray-800 outline-none placeholder:text-gray-300"
             />
             <button
-              onClick={() => setSearchOpen(false)}
+              onClick={closeSearch}
               className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-100 text-gray-400 transition-all duration-200 hover:bg-rose-50 hover:text-rose-500 hover:rotate-90 shadow-sm"
             >
               <X className="h-5 w-5" strokeWidth={2.5} />
@@ -335,7 +335,7 @@ export default function Navbar() {
           <div className="bg-gray-50/80 px-7 py-4 flex items-center justify-end border-t border-gray-100">
              <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Library Search v2.0</span>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lumina Search v2.0</span>
              </div>
           </div>
         </div>
