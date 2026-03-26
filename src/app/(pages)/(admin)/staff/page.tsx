@@ -76,7 +76,7 @@ export default function AdminDashboard() {
             {[
               { id: "books", label: "Book Management", href: "/staff/book-management" },
               { id: "users", label: "User Management", href: "/staff/user-management" },
-              { id: "borrowing", label: "Borrowing Management", href: "/staff" },
+              { id: "borrowing", label: "Borrowing Management", href: "/staff/borrow-management" },
             ].map((tab) => (
               <Link
                 key={tab.id}
