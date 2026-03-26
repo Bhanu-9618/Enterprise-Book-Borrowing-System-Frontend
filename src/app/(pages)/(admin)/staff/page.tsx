@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   BookOpen,
   ArrowRightLeft,
@@ -54,8 +55,6 @@ const statsCards = [
 ];
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = React.useState("books");
-
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-7xl mx-auto px-6 py-10">
@@ -75,21 +74,17 @@ export default function AdminDashboard() {
         <div className="flex justify-center mb-10 mt-6">
           <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-max">
             {[
-              { id: "books", label: "Book Management" },
-              { id: "users", label: "User Management" },
-              { id: "borrowing", label: "Borrowing Management" },
+              { id: "books", label: "Book Management", href: "/staff/book-management" },
+              { id: "users", label: "User Management", href: "/staff/user-management" },
+              { id: "borrowing", label: "Borrowing Management", href: "/staff" },
             ].map((tab) => (
-              <button
+              <Link
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? "bg-slate-900 text-white shadow-md"
-                    : "bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-                }`}
+                href={tab.href}
+                className="px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               >
                 {tab.label}
-              </button>
+              </Link>
             ))}
           </div>
         </div>
