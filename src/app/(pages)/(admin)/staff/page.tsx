@@ -6,7 +6,7 @@ import {
   BookOpen,
   ArrowRightLeft,
   Clock,
-  Users,
+  AlertCircle,
   Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -33,7 +33,7 @@ const statsCards = [
     textColor: "text-emerald-600",
   },
   {
-    title: "Pending Requests",
+    title: "Requested Borrows",
     value: "156",
     change: "-12",
     changeLabel: "vs yesterday",
@@ -43,14 +43,14 @@ const statsCards = [
     textColor: "text-amber-600",
   },
   {
-    title: "Total Users",
+    title: "Overdue Borrows",
     value: "3,921",
     change: "+89",
     changeLabel: "new this month",
     trend: "up" as const,
-    icon: Users,
-    bgColor: "bg-violet-50",
-    textColor: "text-violet-600",
+    icon: AlertCircle,
+    bgColor: "bg-rose-50",
+    textColor: "text-rose-600",
   },
 ];
 
