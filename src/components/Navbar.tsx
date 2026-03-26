@@ -25,9 +25,9 @@ import {
   Calculator,
 } from "lucide-react";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/explore", label: "Explore" },
+const navLinks: { href: string; label: string }[] = [
+  // { href: "/", label: "Home" },
+  // { href: "/explore", label: "Explore" },
 ];
 
 const categories = [
@@ -75,10 +75,10 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setSearchOpen((v) => !v);
-      }
+      // if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      //   e.preventDefault();
+      //   setSearchOpen((v) => !v);
+      // }
       if (e.key === "Escape") {
         closeSearch();
         setMegaOpen(false);
@@ -156,6 +156,7 @@ export default function Navbar() {
               </Link>
             ))}
 
+            {false && (
             <div
               className="relative"
               ref={megaRef}
@@ -171,16 +172,17 @@ export default function Navbar() {
                 <span className="absolute inset-x-2 -bottom-px h-[2px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-blue-500 to-sky-500 transition-transform duration-300 group-hover:scale-x-100" />
               </button>
             </div>
+            )}
           </div>
 
           <div className="hidden md:flex items-center gap-2.5">
-            <button
+            {false && <button
               onClick={() => setSearchOpen(true)}
               className="group flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 px-4 py-[5px] text-sm text-gray-500 transition-all duration-300 hover:border-blue-300 hover:bg-white hover:text-blue-600 hover:shadow-xl hover:shadow-blue-500/10"
             >
               <Search className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" strokeWidth={2.5} />
               <span className="hidden lg:inline font-medium">Search Library</span>
-            </button>
+            </button>}
 
             <div className="mx-1 h-6 w-px bg-gray-200" />
 
@@ -354,13 +356,13 @@ export default function Navbar() {
         <div className="absolute inset-y-0 left-0 w-[2.5px] bg-gradient-to-b from-blue-500 via-sky-500 to-blue-400 opacity-70" />
 
         <div className="flex flex-col gap-1 overflow-y-auto px-5 pt-20 pb-8">
-          <button
+          {/* <button
             onClick={() => { setMobileOpen(false); setTimeout(() => setSearchOpen(true), 200); }}
             className="mb-4 flex items-center gap-3 rounded-xl border border-gray-200/70 bg-gray-50/70 px-4 py-3 text-sm font-bold text-gray-500 transition-all hover:border-blue-300 hover:bg-white hover:text-blue-600 shadow-sm"
           >
             <Search className="h-4 w-4 text-blue-500" strokeWidth={2.5} />
             Search library...
-          </button>
+          </button> */}
 
           {navLinks.map((link, i) => (
             <Link
@@ -374,7 +376,7 @@ export default function Navbar() {
             </Link>
           ))}
 
-          <p className="mt-8 mb-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
+          {/* <p className="mt-8 mb-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
             Browse
           </p>
           {categories.map((cat, i) => (
@@ -391,7 +393,7 @@ export default function Navbar() {
               <span className="text-sm font-bold text-gray-800">{cat.label}</span>
               <span className="ml-auto text-[10px] font-black text-gray-300">{cat.count}</span>
             </Link>
-          ))}
+          ))} */}
 
           <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
 

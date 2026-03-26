@@ -152,6 +152,13 @@ export default function BookManagementPage() {
 
   const updateCategoryPage = (cat: string, p: number) => {
     setCategoryPages((prev) => ({ ...prev, [cat]: p }));
+    setTimeout(() => {
+      const el = document.getElementById(`category-${cat}`);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 50);
   };
 
   // ----- Handlers -----
@@ -274,7 +281,7 @@ export default function BookManagementPage() {
               );
 
               return (
-                <div key={category} className="space-y-6">
+                <div key={category} id={`category-${category}`} className="space-y-6">
                   {/* Centered Category Title */}
                   <div className="relative text-center">
                     <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
@@ -284,7 +291,7 @@ export default function BookManagementPage() {
                   </div>
 
                   {/* 8-col grid matching earlier design */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 min-h-[300px]">
                     {paginatedBooks.map((book) => (
                       <Card
                         key={book.id}
