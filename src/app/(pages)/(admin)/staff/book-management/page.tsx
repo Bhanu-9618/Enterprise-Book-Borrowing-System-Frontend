@@ -12,8 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Hash,
-  ToggleLeft,
-  ToggleRight,
   BookMarked,
   User,
   Building2,
@@ -446,27 +444,6 @@ export default function BookManagementPage() {
                     <Input name="availableCopies" type="number" min={0} placeholder="0" value={formData.availableCopies} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-blue-500/5" />
                   </div>
                 </div>
-              </div>
-
-              {/* Availability Toggle */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Availability</label>
-                <button
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, availability: !prev.availability }))}
-                  className={`w-full h-12 flex items-center gap-3 px-4 rounded-xl border transition-all font-bold text-sm ${
-                    formData.availability
-                      ? "border-emerald-200 bg-emerald-50/50 text-emerald-700"
-                      : "border-rose-200 bg-rose-50/50 text-rose-600"
-                  }`}
-                >
-                  {formData.availability ? (
-                    <ToggleRight className="h-6 w-6 text-emerald-500" />
-                  ) : (
-                    <ToggleLeft className="h-6 w-6 text-rose-400" />
-                  )}
-                  {formData.availability ? "Available — Yes" : "Available — No"}
-                </button>
               </div>
 
               {/* Save Button */}
