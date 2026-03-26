@@ -184,7 +184,7 @@ export default function Navbar() {
 
             <div className="mx-1 h-6 w-px bg-gray-200" />
 
-            <Link href="/signin">
+            <Link href="/auth/signin">
               <Button
                 variant="ghost"
                 className="rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
@@ -193,7 +193,7 @@ export default function Navbar() {
               </Button>
             </Link>
 
-            <Link href="/signup">
+            <Link href="/auth/signup">
               <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
                 <span className="relative z-10 flex items-center gap-2">
                   Join Now
@@ -395,7 +395,7 @@ export default function Navbar() {
 
           <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
 
-          <Link href="/signin" onClick={() => setMobileOpen(false)}>
+          <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
             <Button
               variant="outline"
               className="w-full rounded-2xl py-6 text-sm font-bold border-gray-200 text-gray-600"
@@ -404,7 +404,7 @@ export default function Navbar() {
             </Button>
           </Link>
           <div className="h-3" />
-          <Link href="/signup" onClick={() => setMobileOpen(false)}>
+          <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
             <Button className="w-full rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
               <span className="flex items-center justify-center gap-2">
                 Join Now
