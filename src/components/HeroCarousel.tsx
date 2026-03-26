@@ -18,21 +18,21 @@ const carouselItems = [
     title: "Unlock a World of Knowledge",
     description: "Explore thousands of books ranging from timeless classics to the latest bestsellers. Your next great adventure starts here.",
     cta: "Explore Catalog",
-    color: "from-indigo-400 via-purple-400 to-pink-400",
+    color: "from-blue-400 via-sky-400 to-cyan-400",
   },
   {
     image: "/images/hero-2.png",
     title: "Borrowing Made Effortless",
     description: "No more long queues. Request your favorite books online and pick them up at your convenience. Simple, fast, and digital.",
     cta: "How it Works",
-    color: "from-amber-400 via-orange-400 to-yellow-400",
+    color: "from-blue-500 via-blue-400 to-sky-400",
   },
   {
     image: "/images/hero-3.png",
     title: "Join Our Community of Readers",
     description: "Become a member today to track your reading history, manage borrowings, and stay updated on new arrivals.",
     cta: "Join Now",
-    color: "from-emerald-400 via-teal-400 to-cyan-400",
+    color: "from-blue-600 via-blue-500 to-blue-400",
   },
 ];
 
