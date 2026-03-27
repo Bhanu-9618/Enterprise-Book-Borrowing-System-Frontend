@@ -34,16 +34,16 @@ interface BorrowRecord {
 
 // ---------- Sample Data ----------
 const sampleRecords: BorrowRecord[] = [
-  { id: 1, borrowdate: "2026-03-01", dueDate: "2026-03-15", returnDate: "", status: "BORROWED", bookid: 1, userid: 1 },
+  { id: 1, borrowdate: "2026-03-01", dueDate: "2026-03-15", returnDate: "", status: "ISSUED", bookid: 1, userid: 1 },
   { id: 2, borrowdate: "2026-03-05", dueDate: "2026-03-19", returnDate: "2026-03-18", status: "RETURNED", bookid: 2, userid: 2 },
   { id: 3, borrowdate: "2026-02-20", dueDate: "2026-03-06", returnDate: "", status: "OVERDUE", bookid: 3, userid: 4 },
   { id: 4, borrowdate: "2026-03-10", dueDate: "2026-03-24", returnDate: "2026-03-22", status: "RETURNED", bookid: 5, userid: 1 },
-  { id: 5, borrowdate: "2026-03-12", dueDate: "2026-03-26", returnDate: "", status: "BORROWED", bookid: 4, userid: 5 },
-  { id: 6, borrowdate: "2026-03-15", dueDate: "2026-03-29", returnDate: "", status: "BORROWED", bookid: 6, userid: 3 },
+  { id: 5, borrowdate: "2026-03-12", dueDate: "2026-03-26", returnDate: "", status: "ISSUED", bookid: 4, userid: 5 },
+  { id: 6, borrowdate: "2026-03-15", dueDate: "2026-03-29", returnDate: "", status: "ISSUED", bookid: 6, userid: 3 },
   { id: 7, borrowdate: "2026-02-10", dueDate: "2026-02-24", returnDate: "", status: "OVERDUE", bookid: 7, userid: 6 },
-  { id: 8, borrowdate: "2026-03-20", dueDate: "2026-04-03", returnDate: "", status: "BORROWED", bookid: 8, userid: 7 },
+  { id: 8, borrowdate: "2026-03-20", dueDate: "2026-04-03", returnDate: "", status: "ISSUED", bookid: 8, userid: 7 },
   { id: 9, borrowdate: "2026-03-18", dueDate: "2026-04-01", returnDate: "2026-03-25", status: "RETURNED", bookid: 9, userid: 8 },
-  { id: 10, borrowdate: "2026-03-22", dueDate: "2026-04-05", returnDate: "", status: "PENDING", bookid: 1, userid: 4 },
+  { id: 10, borrowdate: "2026-03-22", dueDate: "2026-04-05", returnDate: "", status: "REQUESTED", bookid: 1, userid: 4 },
 ];
 
 const ITEMS_PER_PAGE = 8;
@@ -52,16 +52,16 @@ const emptyRecord: Omit<BorrowRecord, "id"> = {
   borrowdate: new Date().toISOString().split("T")[0],
   dueDate: "",
   returnDate: "",
-  status: "BORROWED",
+  status: "REQUESTED",
   bookid: 0,
   userid: 0,
 };
 
 const statusConfig: Record<string, { bg: string; text: string; icon: React.ElementType }> = {
-  BORROWED: { bg: "bg-blue-50", text: "text-blue-700", icon: Clock },
-  RETURNED: { bg: "bg-emerald-50", text: "text-emerald-700", icon: CheckCircle2 },
+  REQUESTED: { bg: "bg-amber-50", text: "text-amber-700", icon: Clock },
+  ISSUED: { bg: "bg-blue-50", text: "text-blue-700", icon: CheckCircle2 },
   OVERDUE: { bg: "bg-rose-50", text: "text-rose-700", icon: AlertCircle },
-  PENDING: { bg: "bg-amber-50", text: "text-amber-700", icon: Clock },
+  RETURNED: { bg: "bg-emerald-50", text: "text-emerald-700", icon: CheckCircle2 },
 };
 
 const getStatus = (s: string) =>
@@ -75,9 +75,11 @@ export default function BorrowManagementPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<BorrowRecord | null>(null);
   const [formData, setFormData] = useState<Omit<BorrowRecord, "id">>(emptyRecord);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
   // ----- Filtering -----
   const filteredRecords = records.filter((rec) => {
+    if (filterStatus && rec.status !== filterStatus) return false;
     if (!searchUserId.trim()) return true;
     return rec.userid.toString() === searchUserId.trim();
   });
@@ -165,9 +167,9 @@ export default function BorrowManagementPage() {
           </Button>
         </div>
 
-        {/* Search by User ID */}
-        <div className="mb-6">
-          <div className="relative group max-w-xs">
+        {/* Search by User ID + Filter */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="relative group max-w-xs flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-emerald-500" />
             <Input
               placeholder="Search by User ID..."
@@ -179,6 +181,20 @@ export default function BorrowManagementPage() {
               className="pl-11 h-11 bg-white border-slate-100 rounded-xl text-sm font-medium shadow-sm focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/20"
             />
           </div>
+          <button
+            onClick={() => {
+              setFilterStatus(filterStatus === "REQUESTED" ? null : "REQUESTED");
+              setCurrentPage(1);
+            }}
+            className={`h-11 px-5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${
+              filterStatus === "REQUESTED"
+                ? "bg-amber-100 text-amber-700 ring-2 ring-amber-300"
+                : "bg-white border border-slate-100 text-slate-500 hover:bg-amber-50 hover:text-amber-700"
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            REQUESTED
+          </button>
         </div>
 
         {/* Borrow Records Table */}
@@ -398,7 +414,7 @@ export default function BorrowManagementPage() {
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Status</label>
                 <div className="flex gap-2">
-                  {["BORROWED", "RETURNED", "OVERDUE", "PENDING"].map((s) => {
+                  {["REQUESTED", "ISSUED", "OVERDUE", "RETURNED"].map((s) => {
                     const cfg = getStatus(s);
                     return (
                       <button
