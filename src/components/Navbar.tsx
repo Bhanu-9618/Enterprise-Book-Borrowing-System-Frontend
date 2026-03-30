@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -11,6 +12,8 @@ import {
   Sparkles,
   BookMarked,
   Users,
+  User,
+  LogOut,
   ChevronDown,
   ArrowRight,
   GraduationCap,
@@ -48,10 +51,14 @@ const categories = [
 const quickSearchSuggestions: string[] = [];
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith("/staff");
+  
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const megaRef = useRef<HTMLDivElement>(null);
@@ -186,24 +193,96 @@ export default function Navbar() {
 
             <div className="mx-1 h-6 w-px bg-gray-200" />
 
-            <Link href="/auth/signin">
-              <Button
-                variant="ghost"
-                className="rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
-              >
-                Sign In
-              </Button>
-            </Link>
+            {isAdmin ? (
+              <>
+                <Link href="/staff">
+                  <Button
+                    variant="ghost"
+                    className="rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
+                  >
+                    Home
+                  </Button>
+                </Link>
 
-            <Link href="/auth/signup">
-              <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
-                <span className="relative z-10 flex items-center gap-2">
-                  Join Now
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </span>
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-              </Button>
-            </Link>
+                <div className="group relative list-none">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-1 rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
+                  >
+                    Manage
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180" />
+                  </Button>
+                  <div className="absolute right-0 top-full mt-1 hidden w-48 flex-col rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-blue-500/10 group-hover:flex">
+                    <Link href="/staff/book-management" className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-700">
+                      Book Management
+                    </Link>
+                    <Link href="/staff/user-management" className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-700">
+                      User Management
+                    </Link>
+                    <Link href="/staff/borrow-management" className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-700">
+                      Borrow Management
+                    </Link>
+                  </div>
+                </div>
+
+                <Link href="/staff/borrow-management?status=REQUESTED">
+                  <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 px-6 text-sm font-bold text-white shadow-lg shadow-amber-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/40 active:scale-[0.98]">
+                    <span className="relative z-10 flex items-center gap-2">
+                      Requested
+                    </span>
+                  </Button>
+                </Link>
+
+                <div className="relative">
+                  <div 
+                    className="flex items-center gap-3 pl-3 border-l border-gray-200 cursor-pointer pt-1 pb-1 outline-none"
+                    onClick={() => setProfileOpen(!profileOpen)}
+                  >
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-bold text-gray-700 leading-none mb-1">Admin</span>
+                      <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">Staff</span>
+                    </div>
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-full ring-2 ring-white shadow-sm transition-all ${profileOpen ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-blue-600'}`}>
+                      <User className="h-5 w-5" />
+                    </div>
+                  </div>
+                  
+                  {/* Profile Dropdown */}
+                  {profileOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-48 flex-col rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-blue-500/10 flex z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Link href="/auth/signin" onClick={() => setProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-rose-50 transition-colors">
+                          <LogOut className="h-4 w-4" />
+                          Log out
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/signin">
+                  <Button
+                    variant="ghost"
+                    className="rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+
+                <Link href="/auth/signup">
+                  <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
+                    <span className="relative z-10 flex items-center gap-2">
+                      Join Now
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
+                    <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -397,23 +476,94 @@ export default function Navbar() {
 
           <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
 
-          <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
-            <Button
-              variant="outline"
-              className="w-full rounded-2xl py-6 text-sm font-bold border-gray-200 text-gray-600"
-            >
-              Sign In
-            </Button>
-          </Link>
-          <div className="h-3" />
-          <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
-            <Button className="w-full rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
-              <span className="flex items-center justify-center gap-2">
-                Join Now
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            </Button>
-          </Link>
+          {isAdmin ? (
+            <>
+              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Menu
+              </p>
+              <Link
+                href="/staff"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-2 text-sm font-bold text-gray-600 transition-all duration-200 hover:bg-blue-50/70 hover:text-blue-700 hover:translate-x-1"
+              >
+                Home
+              </Link>
+
+              <div className="h-2" />
+              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Manage
+              </p>
+              <Link
+                href="/staff/book-management"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-2 text-sm font-bold text-gray-600 transition-all duration-200 hover:bg-blue-50/70 hover:text-blue-700 hover:translate-x-1"
+              >
+                Book Management
+              </Link>
+              <Link
+                href="/staff/user-management"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-2 text-sm font-bold text-gray-600 transition-all duration-200 hover:bg-blue-50/70 hover:text-blue-700 hover:translate-x-1"
+              >
+                User Management
+              </Link>
+              <Link
+                href="/staff/borrow-management"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-2 text-sm font-bold text-gray-600 transition-all duration-200 hover:bg-blue-50/70 hover:text-blue-700 hover:translate-x-1"
+              >
+                Borrow Management
+              </Link>
+
+              <div className="h-2" />
+              
+              <Link href="/staff/borrow-management?status=REQUESTED" onClick={() => setMobileOpen(false)}>
+                <Button className="w-full rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 py-6 text-sm font-bold text-white shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.02] hover:shadow-amber-500/40">
+                  <span className="flex items-center justify-center gap-2">
+                    Requested
+                  </span>
+                </Button>
+              </Link>
+              
+              <div className="flex items-center justify-between px-4 py-3 mt-4 mb-2 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm text-slate-500">
+                    <User className="h-5 w-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-700">Admin</span>
+                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Staff</span>
+                  </div>
+                </div>
+                
+                <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
+                  <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-100">
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
+                <Button
+                  variant="outline"
+                  className="w-full rounded-2xl py-6 text-sm font-bold border-gray-200 text-gray-600"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <div className="h-3" />
+              <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
+                <Button className="w-full rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
+                  <span className="flex items-center justify-center gap-2">
+                    Join Now
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
