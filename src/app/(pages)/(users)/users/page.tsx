@@ -20,17 +20,7 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { useAuthStore } from "@/src/store/useAuthStore";
-
-// ---------- Types ----------
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  publisher: string;
-  isbn: string;
-  category: string;
-  availableCopies: number;
-}
+import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
 
 const BOOK_CATEGORIES = [
   "FICTION",
@@ -54,31 +44,6 @@ const formatCategoryName = (cat: string) => {
     .join(" ");
 };
 
-// ---------- Sample Data ----------
-const fictionalBookTitles = [
-  "The Great Shadow", "Echoes of Eternity", "Whispers in the Wind", "Midnight Sun",
-  "The Lost Amulet", "Crimson Peaks", "Silver Linings", "The Sapphire Blade",
-  "Desert Mirage", "Ocean's Deep", "Voices from the Void", "The Last Ember",
-  "Shadows of the Past", "Gilded Cages", "The Thirteenth Door", "Silent Storm",
-  "Winds of Change", "The Clockwork Heart"
-];
-
-const sampleBooks: Book[] = [
-  ...fictionalBookTitles.map((title, i) => ({
-    id: i + 1,
-    title,
-    author: "Fictional Author",
-    publisher: "Scribner",
-    isbn: `978-0000000${(i + 1).toString().padStart(3, "0")}`,
-    category: "FICTION",
-    availableCopies: Math.floor(Math.random() * 5) + 1,
-  })),
-  { id: 20, title: "Clean Code", author: "Robert C. Martin", publisher: "Prentice Hall", isbn: "978-0132350884", category: "TECHNOLOGY", availableCopies: 3 },
-  { id: 21, title: "Atomic Habits", author: "James Clear", publisher: "Avery", isbn: "978-0735211292", category: "NON_FICTION", availableCopies: 0 },
-  { id: 22, title: "Sapiens", author: "Yuval Noah Harari", publisher: "Harper", isbn: "978-0062316097", category: "HISTORY", availableCopies: 0 },
-  { id: 23, title: "Design Patterns", author: "Gang of Four", publisher: "Addison-Wesley", isbn: "978-0201633610", category: "TECHNOLOGY", availableCopies: 1 },
-];
-
 const ITEMS_PER_PAGE = 16;
 
 // ========== COMPONENT ==========
@@ -91,56 +56,51 @@ export default function UserDashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const [books] = useState<Book[]>(sampleBooks);
+  const [categoryData, setCategoryData] = useState<Record<string, PaginatedBooksResponse>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [searchById, setSearchById] = useState("");
-  const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [borrowDate, setBorrowDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState("");
 
-  // ----- Filtering & Grouping -----
-  const filteredBooks = useMemo(() => {
-    return books.filter((book) => {
-      if (searchById.trim()) {
-        return book.id.toString() === searchById.trim();
+  const fetchCategoryData = async (cat: string, pageIndex: number) => {
+    try {
+      const data = await bookService.getBooksByCategory(cat, pageIndex, ITEMS_PER_PAGE);
+      if (data) {
+        setCategoryData(prev => ({ ...prev, [cat]: data }));
       }
-      if (searchTerm.trim()) {
-        const term = searchTerm.toLowerCase();
-        return (
-          book.title.toLowerCase().includes(term) ||
-          book.author.toLowerCase().includes(term) ||
-          book.isbn.toLowerCase().includes(term) ||
-          book.category.toLowerCase().includes(term) ||
-          book.publisher.toLowerCase().includes(term)
-        );
-      }
-      return true;
-    });
-  }, [books, searchById, searchTerm]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
+  React.useEffect(() => {
+    // Initial fetch for all categories at page 0
+    BOOK_CATEGORIES.forEach(cat => fetchCategoryData(cat, 0));
+  }, []);
+
+  // ----- Grouping -----
   const booksByCategory = useMemo(() => {
-    const grouped = {} as Record<string, Book[]>;
-    BOOK_CATEGORIES.forEach((cat) => (grouped[cat] = []));
-    filteredBooks.forEach((book) => {
-      if (grouped[book.category]) {
-        grouped[book.category].push(book);
-      } else {
-        if (!grouped["OTHERS"]) grouped["OTHERS"] = [];
-        grouped["OTHERS"].push(book);
+    const grouped = {} as Record<string, { books: Book[], totalPages: number, pageIndex: number }>;
+    
+    // Default structure based on API response
+    BOOK_CATEGORIES.forEach(cat => {
+      if (categoryData[cat]) {
+         grouped[cat] = {
+           books: [...categoryData[cat].books],
+           totalPages: categoryData[cat].totalPages,
+           pageIndex: categoryData[cat].currentPage
+         };
       }
     });
 
-    const activeCategories: string[] = [];
-    BOOK_CATEGORIES.forEach((cat) => {
-      if (grouped[cat] && grouped[cat].length > 0) activeCategories.push(cat);
-    });
-
+    const activeCategories = Object.keys(grouped).filter(cat => grouped[cat].books.length > 0);
     return { grouped, activeCategories };
-  }, [filteredBooks]);
+  }, [categoryData]);
 
-  const updateCategoryPage = (cat: string, p: number) => {
-    setCategoryPages((prev) => ({ ...prev, [cat]: p }));
+  const updateCategoryPage = (cat: string, newPage: number) => {
+    const pageIndex = newPage - 1; // Backend requires 0-indexed page
+    fetchCategoryData(cat, pageIndex);
   };
 
   const openBorrowModal = (book: Book) => {
@@ -184,7 +144,6 @@ export default function UserDashboardPage() {
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setSearchById("");
-                setCategoryPages({});
               }}
               className="pl-12 h-14 bg-white border-slate-100 rounded-2xl font-medium shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20"
             />
@@ -197,7 +156,6 @@ export default function UserDashboardPage() {
               onChange={(e) => {
                 setSearchById(e.target.value);
                 setSearchTerm("");
-                setCategoryPages({});
               }}
               className="pl-12 h-14 bg-white border-slate-100 rounded-2xl font-medium shadow-sm focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20"
             />
@@ -214,13 +172,10 @@ export default function UserDashboardPage() {
         ) : (
           <div className="space-y-16">
             {booksByCategory.activeCategories.map((category) => {
-              const catBooks = booksByCategory.grouped[category];
-              const currentPage = categoryPages[category] || 1;
-              const totalPages = Math.max(1, Math.ceil(catBooks.length / ITEMS_PER_PAGE));
-              const paginatedBooks = catBooks.slice(
-                (currentPage - 1) * ITEMS_PER_PAGE,
-                currentPage * ITEMS_PER_PAGE
-              );
+              const catData = booksByCategory.grouped[category];
+              const paginatedBooks = catData.books;
+              const currentPage = catData.pageIndex + 1;
+              const totalPages = Math.max(1, catData.totalPages);
 
               return (
                 <div key={category} className="space-y-6">
@@ -247,17 +202,17 @@ export default function UserDashboardPage() {
                             </span>
                             <span
                               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                                book.availableCopies > 0
+                                book.available
                                   ? "bg-emerald-50 text-emerald-600"
                                   : "bg-rose-50 text-rose-500"
                               }`}
                             >
                               <span
                                 className={`h-1 w-1 rounded-full ${
-                                  book.availableCopies > 0 ? "bg-emerald-500" : "bg-rose-400"
+                                  book.available ? "bg-emerald-500" : "bg-rose-400"
                                 }`}
                               />
-                              {book.availableCopies > 0 ? "In Stock" : "Out"}
+                              {book.available ? "In Stock" : "Out"}
                             </span>
                           </div>
 
@@ -286,15 +241,15 @@ export default function UserDashboardPage() {
                           {/* Borrow Button */}
                           <Button
                             onClick={() => openBorrowModal(book)}
-                            disabled={book.availableCopies <= 0}
+                            disabled={!book.available}
                             className={`w-full h-8 rounded-lg text-[11px] font-bold transition-all ${
-                              book.availableCopies > 0
+                              book.available
                                 ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
                                 : "bg-slate-100 text-slate-400 cursor-not-allowed"
                             }`}
                           >
                             <BookOpenCheck className="h-3.5 w-3.5 mr-1.5" />
-                            {book.availableCopies > 0 ? "Borrow" : "Unavailable"}
+                            {book.available ? "Borrow" : "Unavailable"}
                           </Button>
                         </CardContent>
                       </Card>
