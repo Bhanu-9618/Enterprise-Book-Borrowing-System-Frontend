@@ -160,7 +160,7 @@ export default function UserDashboardPage() {
             <span className="text-sm font-bold text-amber-600 uppercase tracking-widest">Dashboard</span>
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-1">
-            Welcome Back, Reader!
+            Welcome Back, Bhanu!
           </h1>
           <p className="text-slate-500 font-medium">Browse our catalog and borrow your next favorite book.</p>
         </div>
