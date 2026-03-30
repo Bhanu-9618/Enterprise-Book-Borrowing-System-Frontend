@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { userService } from "@/src/services/userService";
 import {
   User,
   Mail,
@@ -11,13 +13,19 @@ import {
   Lock,
   ArrowRight,
   BookMarked,
-  Sparkles
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,10 +35,28 @@ export default function SignupPage() {
     password: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Add real signup logic here
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await userService.signup(formData);
+      
+      // Assuming success if the request finishes without catch
+      setSuccess(true);
+      
+      // Auto-redirect to signin after 2 seconds
+      setTimeout(() => {
+        router.push("/auth/signin");
+      }, 2000);
+
+    } catch (err: unknown) {
+      const errorMessage = (err as { message?: string })?.message || "Signup failed. Please check your details.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +66,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-4 py-20 relative overflow-hidden">
-      {/* Literary Background Decoration */}
+      {/* Literacy Background Decoration */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
         <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-blue-200 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] bg-sky-200 rounded-full blur-[120px] animate-pulse delay-700" />
@@ -63,11 +89,24 @@ export default function SignupPage() {
 
         <Card className="border-white/40 bg-white/70 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[2.5rem] overflow-hidden">
           <CardHeader className="pt-10 pb-2 px-10">
-            <CardTitle className="hidden">Sign Up</CardTitle>
-            <CardDescription className="hidden">Enter your details to register.</CardDescription>
+            {success ? (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold text-center animate-in zoom-in-95 duration-500">
+                Welcome to Lumina! 🎉 <br />
+                <span className="font-medium opacity-80">Redirecting you to sign in...</span>
+              </div>
+            ) : error ? (
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold text-center animate-in shake duration-500">
+                {error}
+              </div>
+            ) : (
+              <>
+                <CardTitle className="hidden">Sign Up</CardTitle>
+                <CardDescription className="hidden">Enter your details to register.</CardDescription>
+              </>
+            )}
           </CardHeader>
 
-          <CardContent className="px-10 pb-12">
+          <CardContent className="px-10 pb-12 pt-4">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Name */}
@@ -80,6 +119,7 @@ export default function SignupPage() {
                       placeholder="e.g. John Doe"
                       value={formData.name}
                       onChange={handleChange}
+                      required
                       className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                     />
                   </div>
@@ -96,6 +136,7 @@ export default function SignupPage() {
                       placeholder="user@example.com"
                       value={formData.email}
                       onChange={handleChange}
+                      required
                       className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                     />
                   </div>
@@ -111,6 +152,7 @@ export default function SignupPage() {
                       placeholder="5680545291"
                       value={formData.phone}
                       onChange={handleChange}
+                      required
                       className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                     />
                   </div>
@@ -127,6 +169,7 @@ export default function SignupPage() {
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleChange}
+                      required
                       className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                     />
                   </div>
@@ -143,6 +186,7 @@ export default function SignupPage() {
                     placeholder="e.g. 123 Library Lane"
                     value={formData.address}
                     onChange={handleChange}
+                    required
                     className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                   />
                 </div>
@@ -164,10 +208,21 @@ export default function SignupPage() {
               </div>
 
               <div className="pt-4 flex flex-col gap-6">
-                <Button className="h-16 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-lg font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.98] group overflow-hidden relative">
+                <Button 
+                  disabled={loading || success}
+                  className="h-16 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-lg font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.98] group overflow-hidden relative disabled:opacity-50 disabled:pointer-events-none"
+                >
                   <span className="relative z-10 flex items-center justify-center gap-3">
-                    Register as Member
-                    <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                    {loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : success ? (
+                      "Registered Successfully"
+                    ) : (
+                      <>
+                        Register as Member
+                        <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                      </>
+                    )}
                   </span>
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
                 </Button>
