@@ -19,6 +19,7 @@ import {
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 // ---------- Types ----------
 interface Book {
@@ -82,6 +83,14 @@ const ITEMS_PER_PAGE = 16;
 
 // ========== COMPONENT ==========
 export default function UserDashboardPage() {
+  const { name } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => setHydrated(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [books] = useState<Book[]>(sampleBooks);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchById, setSearchById] = useState("");
@@ -160,7 +169,7 @@ export default function UserDashboardPage() {
             <span className="text-sm font-bold text-amber-600 uppercase tracking-widest">Dashboard</span>
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-1">
-            Welcome Back, Bhanu!
+            Welcome Back, {hydrated && name ? name : "Member"}!
           </h1>
           <p className="text-slate-500 font-medium">Browse our catalog and borrow your next favorite book.</p>
         </div>
@@ -170,7 +179,7 @@ export default function UserDashboardPage() {
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
             <Input
-              placeholder="Search by title, author, ISBN..."
+              placeholder="Search by title or author"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);

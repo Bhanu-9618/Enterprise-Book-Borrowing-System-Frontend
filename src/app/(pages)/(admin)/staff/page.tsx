@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/src/components/ui/card";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 const statsCards = [
   {
@@ -55,6 +56,14 @@ const statsCards = [
 ];
 
 export default function AdminDashboard() {
+  const { name } = useAuthStore();
+  const [hydrated, setHydrated] = React.useState(false);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => setHydrated(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-7xl mx-auto px-6 py-10">
@@ -65,7 +74,7 @@ export default function AdminDashboard() {
             <span className="text-sm font-bold text-amber-600 uppercase tracking-widest">Overview</span>
           </div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-1">
-            Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, Admin
+            Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, {hydrated && name ? name : "Admin"}!
           </h2>
           <p className="text-slate-500 font-medium">Here&apos;s what&apos;s happening at your library today.</p>
         </div>
