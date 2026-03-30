@@ -149,7 +149,7 @@ export default function Navbar() {
           }}
         />
 
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-full items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Dynamic logo routing: Sends logged-in users to their dashboard, guests to the landing page */}
           <Link href={!hydrated ? "/" : isAuth ? (isAdmin ? "/staff" : "/users") : "/"} className="group relative flex items-center gap-2.5">
             <span className="absolute -inset-2 rounded-2xl bg-blue-500/10 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100" />
@@ -288,7 +288,7 @@ export default function Navbar() {
                     onClick={() => setProfileOpen(!profileOpen)}
                   >
                     <div className="flex flex-col items-end">
-                      <span className="text-sm font-bold text-gray-700 leading-none mb-1 max-w-[100px] truncate">
+                      <span className="text-sm font-bold text-gray-700 leading-none mb-1 max-w-[200px] lg:max-w-[250px] truncate">
                         {name || (isAdmin ? "Admin" : "Member")}
                       </span>
                       <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">
@@ -366,7 +366,7 @@ export default function Navbar() {
       >
         <div className="absolute inset-x-0 top-0 h-full bg-white/95 backdrop-blur-2xl shadow-2xl shadow-blue-500/[0.06] border-b border-gray-100" />
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="relative mx-auto max-w-full px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col">
             <h3 className="mb-6 flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">
               <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
@@ -612,7 +612,7 @@ export default function Navbar() {
                     <User className="h-5 w-5" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-700 max-w-[120px] truncate">
+                    <span className="text-sm font-bold text-slate-700 max-w-[250px] truncate">
                       {name || (isAdmin ? "Admin" : "Member")}
                     </span>
                     <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">
