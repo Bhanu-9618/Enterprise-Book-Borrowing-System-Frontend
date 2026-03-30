@@ -89,7 +89,8 @@ function HistoryContent() {
 
 
         {/* Borrow Table (Match Admin Grid Style) */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+          <div className="min-w-[800px]">
           {/* Table Header */}
           <div className="grid grid-cols-[80px_1fr_120px_120px_120px_130px] gap-4 px-8 py-4 bg-slate-50/80 border-b border-slate-100">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
@@ -157,6 +158,7 @@ function HistoryContent() {
               })}
             </div>
           )}
+          </div>
         </div>
 
         {/* Pagination (Match Admin style) */}

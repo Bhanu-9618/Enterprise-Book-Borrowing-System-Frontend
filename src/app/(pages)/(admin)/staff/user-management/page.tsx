@@ -178,7 +178,8 @@ export default function UserManagementPage() {
         </div>
 
         {/* Users List Table */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+          <div className="min-w-[1000px]">
           {/* Table Header */}
           <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
@@ -281,6 +282,7 @@ export default function UserManagementPage() {
               ))}
             </div>
           )}
+          </div>
         </div>
 
         {/* Pagination */}
