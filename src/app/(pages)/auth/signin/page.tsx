@@ -2,26 +2,64 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { userService } from "@/src/services/userService";
+import { useAuthStore } from "@/src/store/useAuthStore";
 import {
   Mail,
   Lock,
   ArrowRight,
   BookMarked,
-  Sparkles
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card";
 
 export default function SigninPage() {
+  const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sign in submitted:", formData);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await userService.login(formData);
+      
+      if (response.code === 200) {
+        // Update store
+        setAuth({
+          token: response.data.token,
+          role: response.data.role,
+          id: response.data.id,
+          name: response.data.name
+        });
+
+        // Redirect based on role
+        if (response.data.role === 'ADMIN') {
+          router.push('/staff');
+        } else {
+          router.push('/users');
+        }
+      } else {
+        setError(response.message || "Login failed. Please check your credentials.");
+      }
+    } catch (err: unknown) {
+      const errorMessage = (err as { message?: string })?.message || "Login failed. Please check your credentials.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +92,11 @@ export default function SigninPage() {
 
         <Card className="border-white/40 bg-white/70 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[2.5rem] overflow-hidden">
           <CardHeader className="pt-10 pb-2 px-10">
+            {error && (
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold text-center mb-4 animate-in shake duration-500">
+                {error}
+              </div>
+            )}
             <CardTitle className="hidden">Sign In</CardTitle>
             <CardDescription className="hidden">Enter your credentials to sign in.</CardDescription>
           </CardHeader>
@@ -71,6 +114,7 @@ export default function SigninPage() {
                     placeholder="user@example.com"
                     value={formData.email}
                     onChange={handleChange}
+                    required
                     className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                   />
                 </div>
@@ -87,16 +131,26 @@ export default function SigninPage() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
+                    required
                     className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
                   />
                 </div>
               </div>
 
               <div className="pt-4 flex flex-col gap-6">
-                <Button className="h-16 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-lg font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.98] group overflow-hidden relative">
+                <Button 
+                  disabled={loading}
+                  className="h-16 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-lg font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.98] group overflow-hidden relative disabled:opacity-50 disabled:pointer-events-none"
+                >
                   <span className="relative z-10 flex items-center justify-center gap-3">
-                    Sign In
-                    <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                    {loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        Sign In
+                        <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                      </>
+                    )}
                   </span>
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
                 </Button>

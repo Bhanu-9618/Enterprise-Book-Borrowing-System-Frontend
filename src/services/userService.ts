@@ -10,6 +10,23 @@ export interface UserSignupData {
     password: string;
 }
 
+export interface UserLoginData {
+    email: string;
+    password: string;
+}
+
+export interface LoginResponse {
+    code: number;
+    message: string;
+    data: {
+        role: 'ADMIN' | 'USER';
+        name: string;
+        id: number;
+        email: string;
+        token: string;
+    };
+}
+
 export const userService = {
     /**
      * Fetches the total count of registered users.
@@ -39,6 +56,23 @@ export const userService = {
                 throw error.response?.data || { message: 'Signup failed. Please try again.' };
             }
             throw { message: 'An unexpected error occurred during signup.' };
+        }
+    },
+
+    /**
+     * Authenticates a user.
+     * URL: http://localhost:8080/auth/login
+     */
+    login: async (loginData: UserLoginData): Promise<LoginResponse> => {
+        try {
+            const response = await api.post('/auth/login', loginData);
+            return response.data;
+        } catch (error) {
+            console.error('Login error:', error);
+            if (axios.isAxiosError(error)) {
+                throw error.response?.data || { message: 'Login failed. Please check your credentials.' };
+            }
+            throw { message: 'An unexpected error occurred during sign in.' };
         }
     }
 };

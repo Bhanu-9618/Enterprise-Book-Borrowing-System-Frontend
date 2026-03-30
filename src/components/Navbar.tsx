@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/src/components/ui/button";
+import { useAuthStore } from "@/src/store/useAuthStore";
 import {
   BookOpen,
   Menu,
@@ -52,10 +53,22 @@ const quickSearchSuggestions: string[] = [];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/staff");
-  const isUser = pathname.startsWith("/users");
-  const isAuth = isAdmin || isUser;
+  const router = useRouter();
+  const { token, role, name, clearAuth } = useAuthStore();
   
+  const isAdmin = role === 'ADMIN';
+  const isUser = role === 'USER';
+  const isAuth = !!token;
+  
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    // Delay setting hydrated state to allow for initial render match without triggering hydration mismatch errors
+    const timer = setTimeout(() => {
+      setHydrated(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
@@ -84,10 +97,6 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-      //   e.preventDefault();
-      //   setSearchOpen((v) => !v);
-      // }
       if (e.key === "Escape") {
         closeSearch();
         setMegaOpen(false);
@@ -108,6 +117,13 @@ export default function Navbar() {
   const closeMega = useCallback(() => {
     megaTimerRef.current = setTimeout(() => setMegaOpen(false), 200);
   }, []);
+
+  const handleLogout = () => {
+    clearAuth();
+    setProfileOpen(false);
+    setMobileOpen(false);
+    router.push("/auth/signin");
+  };
 
   const filteredSuggestions = searchQuery
     ? quickSearchSuggestions.filter((s) =>
@@ -134,7 +150,8 @@ export default function Navbar() {
         />
 
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="group relative flex items-center gap-2.5">
+          {/* Dynamic logo routing: Sends logged-in users to their dashboard, guests to the landing page */}
+          <Link href={!hydrated ? "/" : isAuth ? (isAdmin ? "/staff" : "/users") : "/"} className="group relative flex items-center gap-2.5">
             <span className="absolute -inset-2 rounded-2xl bg-blue-500/10 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100" />
             <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-sky-600 to-cyan-500 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:rotate-3">
               <BookOpen className="h-5 w-5 text-white drop-shadow" strokeWidth={2.2} />
@@ -195,14 +212,19 @@ export default function Navbar() {
 
             <div className="mx-1 h-6 w-px bg-gray-200" />
 
-            {isAuth ? (
+            {!hydrated ? (
+              <div className="flex items-center gap-3 w-[184px] justify-end">
+                <div className="h-9 w-20 animate-pulse rounded-full bg-slate-200/60" />
+                <div className="h-9 w-24 animate-pulse rounded-full bg-blue-100/60" />
+              </div>
+            ) : isAuth ? (
               <>
                 {isAdmin && (
                   <>
                     <Link href="/staff">
                       <Button
                         variant="ghost"
-                        className="rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
+                        className={`rounded-full px-5 text-sm font-bold transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60 ${pathname === '/staff' ? 'text-blue-700 bg-blue-50/60' : 'text-gray-600'}`}
                       >
                         Home
                       </Button>
@@ -211,7 +233,7 @@ export default function Navbar() {
                     <div className="group relative list-none">
                       <Button
                         variant="ghost"
-                        className="flex items-center gap-1 rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
+                        className={`flex items-center gap-1 rounded-full px-5 text-sm font-bold transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60 ${pathname.startsWith('/staff/') ? 'text-blue-700 bg-blue-50/60' : 'text-gray-600'}`}
                       >
                         Manage
                         <ChevronDown className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180" />
@@ -244,7 +266,7 @@ export default function Navbar() {
                     <Link href="/users">
                       <Button
                         variant="ghost"
-                        className="rounded-full px-5 text-sm font-bold text-gray-600 transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60"
+                        className={`rounded-full px-5 text-sm font-bold transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/60 ${pathname === '/users' ? 'text-blue-700 bg-blue-50/60' : 'text-gray-600'}`}
                       >
                         Home
                       </Button>
@@ -266,8 +288,8 @@ export default function Navbar() {
                     onClick={() => setProfileOpen(!profileOpen)}
                   >
                     <div className="flex flex-col items-end">
-                      <span className="text-sm font-bold text-gray-700 leading-none mb-1">
-                        {isAdmin ? "Admin" : "Bhanu"}
+                      <span className="text-sm font-bold text-gray-700 leading-none mb-1 max-w-[100px] truncate">
+                        {name || (isAdmin ? "Admin" : "Member")}
                       </span>
                       <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">
                         {isAdmin ? "Staff" : "Member"}
@@ -283,10 +305,10 @@ export default function Navbar() {
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
                       <div className="absolute right-0 top-full mt-2 w-48 flex-col rounded-xl border border-gray-100 bg-white p-2 shadow-xl shadow-blue-500/10 flex z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <Link href="/auth/signin" onClick={() => setProfileOpen(false)} className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-rose-50 transition-colors">
+                        <button onClick={handleLogout} className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-rose-50 transition-colors w-full text-left">
                           <LogOut className="h-4 w-4" />
                           Log out
-                        </Link>
+                        </button>
                       </div>
                     </>
                   )}
@@ -507,7 +529,11 @@ export default function Navbar() {
 
           <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
 
-          {isAuth ? (
+          {!hydrated ? (
+            <div className="flex w-full items-center justify-center py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            </div>
+          ) : isAuth ? (
             <>
               <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
                 Menu
@@ -586,8 +612,8 @@ export default function Navbar() {
                     <User className="h-5 w-5" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-700">
-                      {isAdmin ? "Admin" : "Bhanu"}
+                    <span className="text-sm font-bold text-slate-700 max-w-[120px] truncate">
+                      {name || (isAdmin ? "Admin" : "Member")}
                     </span>
                     <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">
                       {isAdmin ? "Staff" : "Member"}
@@ -595,11 +621,13 @@ export default function Navbar() {
                   </div>
                 </div>
                 
-                <Link href="/auth/signin" onClick={() => setMobileOpen(false)}>
-                  <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-100">
-                    <LogOut className="h-5 w-5" />
-                  </Button>
-                </Link>
+                <Button 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  className="h-10 w-10 p-0 rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-100"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </div>
             </>
           ) : (
