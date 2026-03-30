@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { borrowService, BorrowRecord } from "@/src/services/borrowService";
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,28 +17,6 @@ import {
   Bookmark,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
-
-// ---------- Types ----------
-interface BorrowRecord {
-  id: number;
-  borrowdate: string;
-  dueDate: string;
-  returnDate: string;
-  status: string;
-  bookTitle: string;
-  bookid: number;
-}
-
-// ---------- Sample Data (Bhanu's History) ----------
-const sampleRecords: BorrowRecord[] = [
-  { id: 1, borrowdate: "2026-03-01", dueDate: "2026-03-15", returnDate: "", status: "ISSUED", bookTitle: "The Great Shadow", bookid: 1 },
-  { id: 2, borrowdate: "2026-03-05", dueDate: "2026-03-19", returnDate: "2026-03-18", status: "RETURNED", bookTitle: "Echoes of Eternity", bookid: 2 },
-  { id: 3, borrowdate: "2026-02-15", dueDate: "2026-03-01", returnDate: "2026-03-05", status: "RETURNED", bookTitle: "Whispers in the Wind", bookid: 3 },
-  { id: 4, borrowdate: "2026-03-12", dueDate: "2026-03-26", returnDate: "", status: "ISSUED", bookTitle: "Clean Code", bookid: 4 },
-  { id: 5, borrowdate: "2026-02-01", dueDate: "2026-02-15", returnDate: "", status: "OVERDUE", bookTitle: "The Lost Amulet", bookid: 5 },
-  { id: 6, borrowdate: "2026-03-10", dueDate: "2026-03-24", returnDate: "2026-03-22", status: "RETURNED", bookTitle: "Crimson Peaks", bookid: 7 },
-  { id: 7, borrowdate: "2026-03-20", dueDate: "2026-04-03", returnDate: "", status: "REQUESTED", bookTitle: "Midnight Sun", bookid: 10 },
-];
 
 const ITEMS_PER_PAGE = 8;
 
@@ -53,9 +33,34 @@ const getStatus = (s: string) =>
 // ========== COMPONENT ==========
 function HistoryContent() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [records, setRecords] = useState<BorrowRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { id: userId } = useAuthStore();
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchHistory = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const data = await borrowService.getBorrowHistoryByUserId(userId);
+        if (isMounted) {
+          setRecords(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch history:", error);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchHistory();
+    return () => { isMounted = false; };
+  }, [userId]);
 
   // ----- Filtering -----
-  const filteredRecords = sampleRecords;
+  const filteredRecords = records;
 
   // ----- Pagination -----
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
@@ -92,9 +97,9 @@ function HistoryContent() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[800px]">
           {/* Table Header */}
-          <div className="grid grid-cols-[80px_1fr_120px_120px_120px_130px] gap-4 px-8 py-4 bg-slate-50/80 border-b border-slate-100">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Book Title</span>
+          <div className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-4 bg-slate-50/80 border-b border-slate-100">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow ID</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Book ID</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow Date</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Date</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Return Date</span>
@@ -102,11 +107,16 @@ function HistoryContent() {
           </div>
 
           {/* Table Body */}
-          {paginatedRecords.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <h3 className="text-sm font-bold text-slate-400">Loading history...</h3>
+            </div>
+          ) : paginatedRecords.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <ArrowRightLeft className="h-12 w-12 text-slate-200 mb-3" />
-              <h3 className="text-sm font-bold text-slate-400 mb-1">No records found</h3>
-              <p className="text-slate-400 text-xs">Try searching for another book title.</p>
+              <h3 className="text-sm font-bold text-slate-400 mb-1">No borrow history found</h3>
+              <p className="text-slate-400 text-xs">When you borrow books, they&apos;ll appear here.</p>
             </div>
           ) : (
             <div>
@@ -115,18 +125,17 @@ function HistoryContent() {
                 const StatusIcon = st.icon;
                 return (
                   <div
-                    key={rec.id}
-                    className={`group grid grid-cols-[80px_1fr_120px_120px_120px_130px] gap-4 px-8 py-5 items-center hover:bg-slate-50/60 transition-colors ${
+                    key={rec.borrowid}
+                    className={`group grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-5 items-center hover:bg-slate-50/60 transition-colors ${
                       index !== paginatedRecords.length - 1 ? "border-b border-slate-50" : ""
                     }`}
                   >
-                    {/* ID */}
-                    <span className="text-xs font-black text-slate-300">#{rec.id.toString().padStart(3, "0")}</span>
+                    {/* Borrow ID */}
+                    <span className="text-xs font-black text-slate-300">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
-                    {/* Book Title */}
+                    {/* Book ID */}
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-slate-800 line-clamp-1">{rec.bookTitle}</span>
-                      <span className="text-[10px] font-medium text-slate-400">BOOK ID: #{rec.bookid}</span>
+                      <span className="text-sm font-bold text-slate-800">#{rec.bookid}</span>
                     </div>
 
                     {/* Borrow Date */}
