@@ -51,5 +51,41 @@ export const bookService = {
             console.error(`Error fetching books for category ${category}:`, error);
             return null;
         }
+    },
+
+    /**
+     * Searches books by title or author.
+     * URL: http://localhost:8080/book/search
+     */
+    searchBooks: async (term: string, page: number = 0, size: number = 16): Promise<PaginatedBooksResponse | null> => {
+        try {
+            const response = await api.get('/book/search', {
+                params: { term, page, size }
+            });
+            if (response.data?.code === 200 && response.data.data) {
+                return response.data.data;
+            }
+            return null;
+        } catch (error) {
+            console.error(`Error searching books for term ${term}:`, error);
+            return null;
+        }
+    },
+
+    /**
+     * Searches a single book by ID.
+     * URL: http://localhost:8080/book/id/{id}
+     */
+    getBookById: async (id: string | number): Promise<Book | null> => {
+        try {
+            const response = await api.get(`/book/id/${id}`);
+            if (response.data?.code === 200 && response.data.data) {
+                return response.data.data;
+            }
+            return null;
+        } catch (error) {
+            console.error(`Error fetching book with ID ${id}:`, error);
+            return null;
+        }
     }
 };

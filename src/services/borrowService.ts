@@ -10,6 +10,12 @@ export interface BorrowRecord {
   userid: number;
 }
 
+export interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
+
 export const borrowService = {
   /**
    * Fetches the borrow history for a specific user ID.
@@ -24,6 +30,20 @@ export const borrowService = {
       return [];
     } catch (error) {
       console.error('Error fetching borrow history:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Saves a new borrow record.
+   * URL: http://localhost:8080/borrow/save
+   */
+  saveBorrow: async (payload: { bookid: number; userid: number }): Promise<ApiResponse<BorrowRecord | null>> => {
+    try {
+      const response = await api.post('/borrow/save', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error saving borrow record:', error);
       throw error;
     }
   },

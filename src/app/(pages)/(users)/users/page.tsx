@@ -12,15 +12,16 @@ import {
   Copy,
   BookOpenCheck,
   Sparkles,
-  Calendar,
   X,
   CheckCircle2,
+  Info,
 } from "lucide-react";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
+import { borrowService } from "@/src/services/borrowService";
 
 const BOOK_CATEGORIES = [
   "FICTION",
@@ -48,8 +49,9 @@ const ITEMS_PER_PAGE = 16;
 
 // ========== COMPONENT ==========
 export default function UserDashboardPage() {
-  const { name } = useAuthStore();
+  const { name, id: userId } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
+  const [isBorrowing, setIsBorrowing] = useState(false);
   
   React.useEffect(() => {
     const timer = setTimeout(() => setHydrated(true), 0);
@@ -60,8 +62,8 @@ export default function UserDashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchById, setSearchById] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [borrowDate, setBorrowDate] = useState(new Date().toISOString().split("T")[0]);
-  const [dueDate, setDueDate] = useState("");
+  const [searchResults, setSearchResults] = useState<PaginatedBooksResponse | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const fetchCategoryData = async (cat: string, pageIndex: number) => {
     try {
@@ -78,6 +80,60 @@ export default function UserDashboardPage() {
     // Initial fetch for all categories at page 0
     BOOK_CATEGORIES.forEach(cat => fetchCategoryData(cat, 0));
   }, []);
+
+  // Search by Term logic
+  React.useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (searchTerm.trim().length > 0) {
+        setIsSearching(true);
+        const results = await bookService.searchBooks(searchTerm, 0, ITEMS_PER_PAGE);
+        setSearchResults(results);
+        setIsSearching(false);
+      } else if (searchById.trim().length === 0) {
+        setSearchResults(null);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, searchById]);
+
+  // Search by ID logic
+  React.useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (searchById.trim().length > 0) {
+        setIsSearching(true);
+        const book = await bookService.getBookById(searchById);
+        if (book) {
+          setSearchResults({
+            totalItems: 1,
+            books: [book],
+            totalPages: 1,
+            currentPage: 0,
+          });
+        } else {
+          setSearchResults({
+            totalItems: 0,
+            books: [],
+            totalPages: 0,
+            currentPage: 0,
+          });
+        }
+        setIsSearching(false);
+      } else if (searchTerm.trim().length === 0) {
+        setSearchResults(null);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(handler);
+  }, [searchById, searchTerm]);
+
+  const updateSearchPage = async (newPage: number) => {
+    const pageIndex = newPage - 1;
+    setIsSearching(true);
+    const results = await bookService.searchBooks(searchTerm, pageIndex, ITEMS_PER_PAGE);
+    setSearchResults(results);
+    setIsSearching(false);
+  };
 
   // ----- Grouping -----
   const booksByCategory = useMemo(() => {
@@ -105,18 +161,36 @@ export default function UserDashboardPage() {
 
   const openBorrowModal = (book: Book) => {
     setSelectedBook(book);
-    setBorrowDate(new Date().toISOString().split("T")[0]);
-    // Default due date: 14 days from now
-    const due = new Date();
-    due.setDate(due.getDate() + 14);
-    setDueDate(due.toISOString().split("T")[0]);
   };
 
-  const handleConfirmBorrow = () => {
-    if (!selectedBook) return;
-    console.log("Borrow confirmed:", { bookId: selectedBook.id, borrowDate, dueDate });
-    // API call will be implemented later
-    setSelectedBook(null);
+  const handleConfirmBorrow = async () => {
+    if (!selectedBook || !userId) {
+      if (!userId) alert("User not logged in!");
+      return;
+    }
+
+    try {
+      setIsBorrowing(true);
+      const response = await borrowService.saveBorrow({
+        bookid: selectedBook.id,
+        userid: userId,
+      });
+
+      if (response.code === 200 || response.code === 201) {
+        alert("Success: Book borrowed successfully!");
+        setSelectedBook(null);
+        // Optional: Refresh book list or category page
+        fetchCategoryData(selectedBook.category, booksByCategory.grouped[selectedBook.category].pageIndex);
+      } else {
+        alert(`Error: ${response.message || "Failed to borrow book"}`);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      alert(errorMessage);
+    } finally {
+      setIsBorrowing(false);
+    }
   };
 
   return (
@@ -162,12 +236,107 @@ export default function UserDashboardPage() {
           </div>
         </div>
 
-        {/* Books By Category */}
-        {booksByCategory.activeCategories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <BookMarked className="h-16 w-16 text-slate-200 mb-4" />
-            <h3 className="text-xl font-bold text-slate-400 mb-1">No books found</h3>
-            <p className="text-slate-400 text-sm">Try adjusting your search.</p>
+        {/* Display Logic: Search Results or Categories */}
+        {(searchTerm.trim().length > 0 || searchById.trim().length > 0) ? (
+          <div className="space-y-8">
+            <div className="relative text-center">
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
+              <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl font-serif font-black text-slate-800 tracking-tight flex items-center justify-center gap-4">
+                Search Results
+                {isSearching && (
+                  <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                )}
+              </span>
+            </div>
+
+            {!isSearching && searchResults?.books.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <BookMarked className="h-16 w-16 text-slate-200 mb-4" />
+                <h3 className="text-xl font-bold text-slate-400 mb-1">
+                  No books match &quot;{searchTerm || searchById}&quot;
+                </h3>
+              </div>
+            )}
+
+            {searchResults && searchResults.books.length > 0 && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                  {searchResults.books.map((book) => (
+                    <Card
+                      key={book.id}
+                      className="group relative bg-white border-slate-100/80 rounded-xl shadow-sm shadow-slate-200/40 hover:shadow-md hover:shadow-slate-200/60 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col"
+                    >
+                      <CardContent className="p-3 flex-1 flex flex-col">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                            #{book.id.toString().padStart(3, "0")}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                              book.available ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"
+                            }`}
+                          >
+                            <span className={`h-1 w-1 rounded-full ${book.available ? "bg-emerald-500" : "bg-rose-400"}`} />
+                            {book.available ? "In Stock" : "Out"}
+                          </span>
+                        </div>
+                        <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
+                        <p className="text-[10px] font-medium text-slate-400 mb-2 truncate">{book.author}</p>
+                        <div className="space-y-1 mb-3 mt-auto">
+                          <div className="flex items-center gap-1.5 text-[10px]">
+                            <Building2 className="h-3 w-3 text-slate-300 shrink-0" />
+                            <span className="text-slate-500 font-medium truncate">{book.publisher}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px]">
+                            <Barcode className="h-3 w-3 text-slate-300 shrink-0" />
+                            <span className="text-slate-500 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px]">
+                            <Copy className="h-3 w-3 text-slate-300 shrink-0" />
+                            <span className="text-slate-500 font-medium">{book.availableCopies} copies</span>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => openBorrowModal(book)}
+                          disabled={!book.available}
+                          className={`w-full h-8 rounded-lg text-[11px] font-bold transition-all ${
+                            book.available
+                              ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                          }`}
+                        >
+                          <BookOpenCheck className="h-3.5 w-3.5 mr-1.5" />
+                          {book.available ? "Borrow" : "Unavailable"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Search Pagination */}
+                {searchResults.totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8">
+                    <button
+                      onClick={() => updateSearchPage(Math.max(1, searchResults.currentPage))}
+                      disabled={searchResults.currentPage === 0}
+                      className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronLeft className="h-3 w-3" />
+                    </button>
+                    <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wide">
+                      Page {searchResults.currentPage + 1} of {searchResults.totalPages}
+                    </span>
+                    <button
+                      onClick={() => updateSearchPage(Math.min(searchResults.totalPages, searchResults.currentPage + 2))}
+                      disabled={searchResults.currentPage + 1 === searchResults.totalPages}
+                      className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-16">
@@ -338,32 +507,36 @@ export default function UserDashboardPage() {
                 </div>
               </div>
 
-              {/* Dates (Read-only) */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Borrow Date</label>
-                  <div className="flex items-center gap-3 h-12 px-4 bg-slate-50/50 border border-slate-100 rounded-xl">
-                    <Calendar className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm font-bold text-slate-700">{borrowDate}</span>
-                  </div>
+              {/* Borrowing Policy Note */}
+              <div className="bg-blue-50/50 border border-blue-100/50 rounded-2xl p-5 flex items-start gap-4">
+                <div className="mt-0.5 p-2 bg-blue-100 rounded-xl">
+                  <Info className="h-5 w-5 text-blue-600" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Due Date</label>
-                  <div className="flex items-center gap-3 h-12 px-4 bg-slate-50/50 border border-slate-100 rounded-xl">
-                    <Calendar className="h-4 w-4 text-amber-400" />
-                    <span className="text-sm font-bold text-slate-700">{dueDate}</span>
-                  </div>
+                <div>
+                  <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest mb-1">Borrowing Policy</p>
+                  <p className="text-[13px] text-slate-600 font-medium leading-relaxed">
+                    You can hold this book for <span className="text-blue-700 font-bold">14 days</span> after the library issues it to you. Please ensure you return the book on time to avoid any late fees.
+                  </p>
                 </div>
               </div>
 
               {/* Confirm Button */}
               <Button
                 onClick={handleConfirmBorrow}
-                disabled={!borrowDate || !dueDate}
+                disabled={isBorrowing}
                 className="h-14 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold text-base shadow-xl shadow-blue-500/25 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
-                <CheckCircle2 className="h-5 w-5 mr-2" />
-                Confirm Borrow
+                {isBorrowing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 border-t-2 border-white rounded-full animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 mr-2" />
+                    Confirm Borrow
+                  </>
+                )}
               </Button>
             </div>
           </div>
