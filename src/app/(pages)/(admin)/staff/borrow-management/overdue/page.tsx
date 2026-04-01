@@ -143,7 +143,7 @@ function OverdueManagementContent() {
           <div className="min-w-[1000px]">
             {/* Table Header */}
             <div className="grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-4 bg-slate-50/80 border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow ID</span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User ID</span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fine Amount</span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Status</span>
