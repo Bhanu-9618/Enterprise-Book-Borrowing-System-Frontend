@@ -87,5 +87,19 @@ export const bookService = {
             console.error(`Error fetching book with ID ${id}:`, error);
             return null;
         }
-    }
+    },
+
+    /**
+     * Saves a new book to the database.
+     * URL: http://localhost:8080/book/save
+     */
+    saveBook: async (bookData: Omit<Book, "id" | "available">): Promise<{ code: number; message: string; data?: Book }> => {
+        try {
+            const response = await api.post("/book/save", bookData);
+            return response.data;
+        } catch (error) {
+            console.error("Error saving book:", error);
+            throw error;
+        }
+    },
 };
