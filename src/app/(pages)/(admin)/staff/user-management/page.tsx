@@ -148,20 +148,28 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleToggleStatus = async (id: number) => {
-    if (id === authId) {
+  const handleToggleStatus = async (user: UserData) => {
+    if (user.id === authId) {
       toast.error("You cannot deactivate your own account!");
       setStatusToggleConfirm(null);
       return;
     }
     try {
       setLoading(true);
-      const response = await userService.deleteUser(id);
+      let response;
+      if (user.isActive) {
+        // Deactivate via Soft Delete
+        response = await userService.deleteUser(user.id);
+      } else {
+        // Activate via Update
+        response = await userService.updateUser({ ...user, isActive: true });
+      }
+
       if (response.code === 200 || response.code === 201) {
-        toast.success("User status toggled successfully!");
+        toast.success(user.isActive ? "User deactivated successfully!" : "User activated successfully!");
         await fetchUsers();
       } else {
-        toast.error(response.message || "Failed to toggle status");
+        toast.error(response.message || "Failed to update user status");
       }
     } catch (err) {
       console.error(err);
@@ -297,7 +305,7 @@ export default function UserManagementPage() {
                       {statusToggleConfirm === user.id ? (
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => handleToggleStatus(user.id)}
+                            onClick={() => handleToggleStatus(user)}
                             className={`h-7 px-2 flex items-center justify-center rounded-lg text-[10px] font-bold text-white transition-all ${user.isActive ? "bg-rose-500 hover:bg-rose-600" : "bg-emerald-500 hover:bg-emerald-600"
                               }`}
                           >
