@@ -23,34 +23,12 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 
-// ---------- Types ----------
-interface BorrowRecord {
-  id: number;
-  borrowdate: string;
-  dueDate: string;
-  returnDate: string;
-  status: string;
-  bookid: number;
-  userid: number;
-}
+import { borrowService, BorrowRecord } from "@/src/services/borrowService";
 
-// ---------- Sample Data ----------
-const sampleRecords: BorrowRecord[] = [
-  { id: 1, borrowdate: "2026-03-01", dueDate: "2026-03-15", returnDate: "", status: "ISSUED", bookid: 1, userid: 1 },
-  { id: 2, borrowdate: "2026-03-05", dueDate: "2026-03-19", returnDate: "2026-03-18", status: "RETURNED", bookid: 2, userid: 2 },
-  { id: 3, borrowdate: "2026-02-20", dueDate: "2026-03-06", returnDate: "", status: "OVERDUE", bookid: 3, userid: 4 },
-  { id: 4, borrowdate: "2026-03-10", dueDate: "2026-03-24", returnDate: "2026-03-22", status: "RETURNED", bookid: 5, userid: 1 },
-  { id: 5, borrowdate: "2026-03-12", dueDate: "2026-03-26", returnDate: "", status: "ISSUED", bookid: 4, userid: 5 },
-  { id: 6, borrowdate: "2026-03-15", dueDate: "2026-03-29", returnDate: "", status: "ISSUED", bookid: 6, userid: 3 },
-  { id: 7, borrowdate: "2026-02-10", dueDate: "2026-02-24", returnDate: "", status: "OVERDUE", bookid: 7, userid: 6 },
-  { id: 8, borrowdate: "2026-03-20", dueDate: "2026-04-03", returnDate: "", status: "ISSUED", bookid: 8, userid: 7 },
-  { id: 9, borrowdate: "2026-03-18", dueDate: "2026-04-01", returnDate: "2026-03-25", status: "RETURNED", bookid: 9, userid: 8 },
-  { id: 10, borrowdate: "2026-03-22", dueDate: "2026-04-05", returnDate: "", status: "REQUESTED", bookid: 1, userid: 4 },
-];
 
 const ITEMS_PER_PAGE = 8;
 
-const emptyRecord: Omit<BorrowRecord, "id"> = {
+const emptyRecord: Omit<BorrowRecord, "borrowid"> = {
   borrowdate: new Date().toISOString().split("T")[0],
   dueDate: "",
   returnDate: "",
@@ -72,19 +50,49 @@ const getStatus = (s: string) =>
 // ========== COMPONENT ==========
 function BorrowManagementContent() {
   const searchParams = useSearchParams();
-  const [records, setRecords] = useState<BorrowRecord[]>(sampleRecords);
+  const [records, setRecords] = useState<BorrowRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchUserId, setSearchUserId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<BorrowRecord | null>(null);
-  const [formData, setFormData] = useState<Omit<BorrowRecord, "id">>(emptyRecord);
+  const [formData, setFormData] = useState<Omit<BorrowRecord, "borrowid">>(emptyRecord);
   const [filterStatus, setFilterStatus] = useState<string | null>(searchParams.get("status"));
+
+  // Sync state with URL search params (Navbar navigation)
+  React.useEffect(() => {
+    const status = searchParams.get("status");
+    setFilterStatus(status);
+  }, [searchParams]);
+
+  const fetchRecords = async (status: string | null = null, searchId: string = "") => {
+    setLoading(true);
+    let data: BorrowRecord[] = [];
+
+    if (searchId.trim()) {
+      data = await borrowService.getBorrowHistoryByUserId(parseInt(searchId.trim()));
+    } else if (status === "REQUESTED") {
+      data = await borrowService.getRequestedBorrows();
+    } else {
+      data = await borrowService.getAllBorrows();
+    }
+    setRecords(data);
+    setLoading(false);
+  };
+
+  // Debounced search logic
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchRecords(filterStatus, searchUserId);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchUserId, filterStatus]);
 
   // ----- Filtering -----
   const filteredRecords = records.filter((rec) => {
     if (filterStatus && rec.status !== filterStatus) return false;
-    if (!searchUserId.trim()) return true;
-    return rec.userid.toString() === searchUserId.trim();
+    return true;
   });
 
   // ----- Pagination -----
@@ -114,20 +122,41 @@ function BorrowManagementContent() {
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.bookid || !formData.userid) return;
 
-    if (editingRecord) {
-      setRecords((prev) =>
-        prev.map((r) => (r.id === editingRecord.id ? { ...r, ...formData } : r))
-      );
-    } else {
-      const newId = Math.max(...records.map((r) => r.id), 0) + 1;
-      setRecords((prev) => [...prev, { id: newId, ...formData }]);
+    try {
+      if (editingRecord) {
+        const response = await borrowService.updateBorrow({
+          borrowid: editingRecord.borrowid,
+          status: formData.status
+        });
+        if (response.code === 200) {
+          alert("Success: Borrow record updated!");
+          await fetchRecords(filterStatus, searchUserId);
+        } else {
+          alert(`Error: ${response.message || "Failed to update record"}`);
+        }
+      } else {
+        const response = await borrowService.saveBorrow({
+          bookid: formData.bookid,
+          userid: formData.userid
+        });
+        if (response.code === 200) {
+          alert("Success: New borrow record created!");
+          await fetchRecords(filterStatus, searchUserId);
+        } else {
+          alert(`Error: ${response.message || "Failed to save record"}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while saving.");
+    } finally {
+      setShowModal(false);
+      setFormData(emptyRecord);
+      setEditingRecord(null);
     }
-    setShowModal(false);
-    setFormData(emptyRecord);
-    setEditingRecord(null);
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -138,15 +167,6 @@ function BorrowManagementContent() {
     }));
   };
 
-  const markReturned = (rec: BorrowRecord) => {
-    setRecords((prev) =>
-      prev.map((r) =>
-        r.id === rec.id
-          ? { ...r, status: "RETURNED", returnDate: new Date().toISOString().split("T")[0] }
-          : r
-      )
-    );
-  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -211,100 +231,95 @@ function BorrowManagementContent() {
         {/* Borrow Records Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1000px]">
-          {/* Table Header */}
-          <div className="grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow Date</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Date</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Return Date</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Book ID</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User ID</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
-          </div>
-
-          {/* Table Body */}
-          {paginatedRecords.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <ArrowRightLeft className="h-12 w-12 text-slate-200 mb-3" />
-              <h3 className="text-sm font-bold text-slate-400 mb-1">No records found</h3>
-              <p className="text-slate-400 text-xs">Try adjusting your search or create a new record.</p>
+            {/* Table Header */}
+            <div className="grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow Date</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Date</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Return Date</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Book ID</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User ID</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
             </div>
-          ) : (
-            <div>
-              {paginatedRecords.map((rec, index) => {
-                const st = getStatus(rec.status);
-                const StatusIcon = st.icon;
-                return (
-                  <div
-                    key={rec.id}
-                    className={`group grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== paginatedRecords.length - 1 ? "border-b border-slate-50" : ""
-                      }`}
-                  >
-                    {/* ID */}
-                    <span className="text-xs font-black text-slate-300">#{rec.id.toString().padStart(3, "0")}</span>
 
-                    {/* Borrow Date */}
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-xs font-medium text-slate-600">{rec.borrowdate}</span>
-                    </div>
+            {/* Table Body */}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-slate-500 font-bold">Loading borrowings...</p>
+              </div>
+            ) : paginatedRecords.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <ArrowRightLeft className="h-12 w-12 text-slate-200 mb-3" />
+                <h3 className="text-sm font-bold text-slate-400 mb-1">No records found</h3>
+                <p className="text-slate-400 text-xs">Try adjusting your search or create a new record.</p>
+              </div>
+            ) : (
+              <div>
+                {paginatedRecords.map((rec, index) => {
+                  const st = getStatus(rec.status);
+                  const StatusIcon = st.icon;
+                  return (
+                    <div
+                      key={rec.borrowid}
+                      className={`group grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== paginatedRecords.length - 1 ? "border-b border-slate-50" : ""
+                        }`}
+                    >
+                      {/* ID */}
+                      <span className="text-xs font-black text-slate-300">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
-                    {/* Due Date */}
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-xs font-medium text-slate-600">{rec.dueDate}</span>
-                    </div>
+                      {/* Borrow Date */}
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3 w-3 text-slate-300 shrink-0" />
+                        <span className="text-xs font-medium text-slate-600">{rec.borrowdate || "—"}</span>
+                      </div>
 
-                    {/* Return Date */}
-                    <span className="text-xs font-medium text-slate-500">
-                      {rec.returnDate || (
-                        <span className="text-slate-300 italic">—</span>
-                      )}
-                    </span>
+                      {/* Due Date */}
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3 w-3 text-slate-300 shrink-0" />
+                        <span className="text-xs font-medium text-slate-600">{rec.dueDate || "—"}</span>
+                      </div>
 
-                    {/* Status */}
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${st.bg} ${st.text}`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {rec.status}
-                    </span>
+                      {/* Return Date */}
+                      <span className="text-xs font-medium text-slate-500">
+                        {rec.returnDate || (
+                          <span className="text-slate-300 italic">—</span>
+                        )}
+                      </span>
 
-                    {/* Book ID */}
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-xs font-bold text-slate-600">#{rec.bookid}</span>
-                    </div>
+                      {/* Status */}
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${st.bg} ${st.text}`}>
+                        <StatusIcon className="h-3 w-3" />
+                        {rec.status}
+                      </span>
 
-                    {/* User ID */}
-                    <div className="flex items-center gap-1.5">
-                      <User className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-xs font-bold text-slate-600">#{rec.userid}</span>
-                    </div>
+                      {/* Book ID */}
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="h-3 w-3 text-slate-300 shrink-0" />
+                        <span className="text-xs font-bold text-slate-600">#{rec.bookid}</span>
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-end gap-1">
-                      {rec.status !== "RETURNED" && (
+                      {/* User ID */}
+                      <div className="flex items-center gap-1.5">
+                        <User className="h-3 w-3 text-slate-300 shrink-0" />
+                        <span className="text-xs font-bold text-slate-600">#{rec.userid}</span>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => markReturned(rec)}
-                          title="Mark as Returned"
-                          className="h-7 px-2 flex items-center gap-1 rounded-lg text-[10px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-all"
+                          onClick={() => openEditModal(rec)}
+                          className="h-7 w-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                         >
-                          <CheckCircle2 className="h-3 w-3" />
-                          Return
+                          <Edit3 className="h-3.5 w-3.5" />
                         </button>
-                      )}
-                      <button
-                        onClick={() => openEditModal(rec)}
-                        className="h-7 w-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" />
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -358,7 +373,7 @@ function BorrowManagementContent() {
                 </h2>
                 <p className="text-sm text-slate-400 font-medium mt-0.5">
                   {editingRecord
-                    ? `Editing #${editingRecord.id.toString().padStart(3, "0")}`
+                    ? `Editing #${editingRecord.borrowid.toString().padStart(3, "0")}`
                     : "Fill in the borrowing details"}
                 </p>
               </div>
@@ -377,8 +392,8 @@ function BorrowManagementContent() {
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Book ID</label>
                   <div className="relative group">
-                    <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-emerald-500" />
-                    <Input name="bookid" type="number" min={0} placeholder="0" value={formData.bookid} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-emerald-500/5" />
+                    <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                    <Input name="bookid" type="number" min={0} value={formData.bookid} onChange={handleFormChange} readOnly={!!editingRecord} className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-emerald-500/5 ${editingRecord ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} />
                   </div>
                 </div>
 
@@ -386,63 +401,67 @@ function BorrowManagementContent() {
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">User ID</label>
                   <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-emerald-500" />
-                    <Input name="userid" type="number" min={0} placeholder="0" value={formData.userid} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-emerald-500/5" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                    <Input name="userid" type="number" min={0} value={formData.userid} onChange={handleFormChange} readOnly={!!editingRecord} className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-emerald-500/5 ${editingRecord ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} />
                   </div>
                 </div>
               </div>
 
-              {/* Borrow Date */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Borrow Date</label>
-                <div className="relative group">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                  <Input name="borrowdate" type="date" value={formData.borrowdate} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-emerald-500/5" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Due Date */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Due Date</label>
-                  <div className="relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                    <Input name="dueDate" type="date" value={formData.dueDate} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-emerald-500/5" />
+              {editingRecord && (
+                <>
+                  {/* Borrow Date */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Borrow Date</label>
+                    <div className="relative group">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                      <Input name="borrowdate" type="date" value={formData.borrowdate || ""} onChange={handleFormChange} readOnly={!!editingRecord} className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-emerald-500/5 ${editingRecord ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} />
+                    </div>
                   </div>
-                </div>
 
-                {/* Return Date */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Return Date</label>
-                  <div className="relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                    <Input name="returnDate" type="date" value={formData.returnDate} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-emerald-500/5" />
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Due Date */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Due Date</label>
+                      <div className="relative group">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                        <Input name="dueDate" type="date" value={formData.dueDate || ""} onChange={handleFormChange} readOnly={!!editingRecord} className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-emerald-500/5 ${editingRecord ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} />
+                      </div>
+                    </div>
+
+                    {/* Return Date */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Return Date</label>
+                      <div className="relative group">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                        <Input name="returnDate" type="date" value={formData.returnDate || ""} onChange={handleFormChange} readOnly={!!editingRecord} className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-emerald-500/5 ${editingRecord ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Status */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Status</label>
-                <div className="flex gap-2">
-                  {["REQUESTED", "ISSUED", "OVERDUE", "RETURNED"].map((s) => {
-                    const cfg = getStatus(s);
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, status: s }))}
-                        className={`flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition-all ${formData.status === s
-                          ? `${cfg.bg} ${cfg.text} border-current ring-2 ring-current/10`
-                          : "border-slate-100 text-slate-400 hover:bg-slate-50"
-                          }`}
-                      >
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                  {/* Status */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Status</label>
+                    <div className="flex gap-2">
+                      {["REQUESTED", "ISSUED", "OVERDUE", "RETURNED"].map((s) => {
+                        const cfg = getStatus(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, status: s }))}
+                            className={`flex-1 h-11 flex items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition-all ${formData.status === s
+                              ? `${cfg.bg} ${cfg.text} border-current ring-2 ring-current/10`
+                              : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                              }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Save Button */}
               <div className="pt-3">

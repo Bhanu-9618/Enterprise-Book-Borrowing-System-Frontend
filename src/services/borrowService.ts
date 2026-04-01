@@ -10,6 +10,13 @@ export interface BorrowRecord {
   userid: number;
 }
 
+export interface OverdueRecord {
+  userid: number;
+  borrowid: number;
+  fineAmount: number;
+  paymentStatus: string;
+}
+
 export interface ApiResponse<T> {
   code: number;
   message: string;
@@ -98,4 +105,93 @@ export const borrowService = {
       return 0;
     }
   },
+
+  /**
+   * Fetches all borrow records.
+   * URL: http://localhost:8080/borrow/all
+   */
+  getAllBorrows: async (): Promise<BorrowRecord[]> => {
+    try {
+      const response = await api.get('/borrow/all');
+      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+        return response.data.data;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching all borrow records:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Updates the status of a borrow record.
+   * URL: http://localhost:8080/borrow/update
+   */
+  updateBorrow: async (payload: { borrowid: number; status: string }): Promise<ApiResponse<BorrowRecord | null>> => {
+    try {
+      const response = await api.put('/borrow/update', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating borrow record:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetches all requested (pending) borrow records.
+   * URL: http://localhost:8080/borrow/requested
+   */
+  getRequestedBorrows: async (): Promise<BorrowRecord[]> => {
+    try {
+      const response = await api.get('/borrow/requested');
+      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+        return response.data.data;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching requested borrow records:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Fetches all overdue borrow records.
+   * URL: http://localhost:8080/borrow/overdue
+   */
+  getOverdueBorrows: async (): Promise<OverdueRecord[]> => {
+    try {
+      const response = await api.get('/borrow/overdue');
+      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+        return response.data.data;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching overdue borrow records:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Updates fine payment status
+   * URL: http://localhost:8080/fine/update-payment
+   */
+  updateFinePayment: async (payload: { borrowId: number; status: string }): Promise<ApiResponse<unknown>> => {
+    try {
+      const response = await api.put('/fine/update-payment', null, {
+        params: {
+          borrowId: payload.borrowId,
+          status: payload.status
+        }
+      });
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Error updating fine payment:', error);
+      const err = error as { response?: { status?: number; data?: { message?: string } } };
+      return {
+        code: err.response?.status || 500,
+        message: err.response?.data?.message || 'Error updating payment status',
+        data: null
+      };
+    }
+  }
 };
