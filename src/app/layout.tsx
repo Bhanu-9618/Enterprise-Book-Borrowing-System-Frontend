@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Navbar from "@/src/components/Navbar";
+import { Toaster } from "react-hot-toast";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={jakarta.variable}>
       <body className={jakarta.className}>
+        <Toaster position="top-right" reverseOrder={false} />
         <Navbar />
         <main className="min-h-screen">
           {children}

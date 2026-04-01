@@ -2,6 +2,7 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import {
   Search,
   ChevronLeft,
@@ -78,15 +79,15 @@ function OverdueManagementContent() {
         status: "PAID"
       });
       if (response.code === 200) {
-        alert("Success: Payment Processed Successfully!");
+        toast.success("Payment Processed Successfully!");
         setShowFineModal(false);
         await fetchRecords();
       } else {
-        alert(`Error: ${response.message || "Failed to update payment"}`);
+        toast.error(response.message || "Failed to update payment");
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading(false);
     }

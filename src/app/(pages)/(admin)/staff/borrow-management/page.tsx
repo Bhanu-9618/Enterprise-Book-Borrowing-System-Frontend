@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import {
   ArrowRightLeft,
   Plus,
@@ -132,10 +133,10 @@ function BorrowManagementContent() {
           status: formData.status
         });
         if (response.code === 200) {
-          alert("Success: Borrow record updated!");
+          toast.success("Borrow record updated!");
           await fetchRecords(filterStatus, searchUserId);
         } else {
-          alert(`Error: ${response.message || "Failed to update record"}`);
+          toast.error(response.message || "Failed to update record");
         }
       } else {
         const response = await borrowService.saveBorrow({
@@ -143,15 +144,15 @@ function BorrowManagementContent() {
           userid: formData.userid
         });
         if (response.code === 200) {
-          alert("Success: New borrow record created!");
+          toast.success("New borrow record created!");
           await fetchRecords(filterStatus, searchUserId);
         } else {
-          alert(`Error: ${response.message || "Failed to save record"}`);
+          toast.error(response.message || "Failed to save record");
         }
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred while saving.");
+      toast.error("An error occurred while saving.");
     } finally {
       setShowModal(false);
       setFormData(emptyRecord);

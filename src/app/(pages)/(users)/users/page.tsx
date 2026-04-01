@@ -22,6 +22,7 @@ import { Input } from "@/src/components/ui/input";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
 import { borrowService } from "@/src/services/borrowService";
+import toast from "react-hot-toast";
 
 const BOOK_CATEGORIES = [
   "FICTION",
@@ -165,7 +166,7 @@ export default function UserDashboardPage() {
 
   const handleConfirmBorrow = async () => {
     if (!selectedBook || !userId) {
-      if (!userId) alert("User not logged in!");
+      if (!userId) toast.error("User not logged in!");
       return;
     }
 
@@ -177,17 +178,17 @@ export default function UserDashboardPage() {
       });
 
       if (response.code === 200 || response.code === 201) {
-        alert("Success: Book borrowed successfully!");
+        toast.success("Book borrowed successfully!");
         setSelectedBook(null);
         // Optional: Refresh book list or category page
         fetchCategoryData(selectedBook.category, booksByCategory.grouped[selectedBook.category].pageIndex);
       } else {
-        alert(`Error: ${response.message || "Failed to borrow book"}`);
+        toast.error(response.message || "Failed to borrow book");
       }
     } catch (err: unknown) {
       console.error(err);
       const errorMessage = err instanceof Error ? err.message : "An error occurred";
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsBorrowing(false);
     }

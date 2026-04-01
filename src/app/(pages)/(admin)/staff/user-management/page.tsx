@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import {
   Users,
   Plus,
@@ -119,10 +120,10 @@ export default function UserManagementPage() {
         setLoading(true);
         const resUpdate = await userService.updateUser({ id: editingUser.id, ...formData });
         if (resUpdate.code === 200 || resUpdate.code === 201) {
-          alert("Success: User updated successfully!");
+          toast.success("User updated successfully!");
           await fetchUsers(); // Refresh the list from server
         } else {
-          alert(`Error: ${resUpdate.message || "Failed to update user"}`);
+          toast.error(resUpdate.message || "Failed to update user");
         }
       } else {
         const resSave = await userService.saveUser({
@@ -130,15 +131,15 @@ export default function UserManagementPage() {
           membershipdate: new Date().toISOString().split('T')[0] // Always today
         });
         if (resSave.code === 200 || resSave.code === 201) {
-          alert("Success: User added successfully!");
+          toast.success("User added successfully!");
           await fetchUsers();
         } else {
-          alert(`Error: ${resSave.message || "Failed to add user"}`);
+          toast.error(resSave.message || "Failed to add user");
         }
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred while saving the user.");
+      toast.error("An error occurred while saving the user.");
     } finally {
       setShowModal(false);
       setFormData(emptyUser);
@@ -152,14 +153,14 @@ export default function UserManagementPage() {
       setLoading(true);
       const response = await userService.deleteUser(id);
       if (response.code === 200 || response.code === 201) {
-        alert("Success: User status toggled successfully!");
+        toast.success("User status toggled successfully!");
         await fetchUsers();
       } else {
-        alert(`Error: ${response.message || "Failed to toggle status"}`);
+        toast.error(response.message || "Failed to toggle status");
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred while toggling the status.");
+      toast.error("An error occurred while toggling the status.");
     } finally {
       setStatusToggleConfirm(null);
       setLoading(false);

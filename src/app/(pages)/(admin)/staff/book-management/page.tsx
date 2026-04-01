@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
 import {
   Search,
   ChevronLeft,
@@ -143,21 +144,21 @@ export default function AdminBookManagementPage() {
       if (editingBook) {
         // We can update this when an update API is available
         console.log("Update requested for:", editingBook.id, formData);
-        alert("Update functionality is currently not supported by backend.");
+        toast.error("Update functionality is currently not supported by backend.");
       } else {
         const response = await bookService.saveBook(formData);
         if (response.code === 200 || response.code === 201) {
-          alert("Success: Book added successfully!");
+          toast.success("Book added successfully!");
           fetchCategoryData(formData.category, 0);
           setShowModal(false);
           setFormData(emptyFormData);
         } else {
-          alert(`Error: ${response.message || "Failed to add book"}`);
+          toast.error(response.message || "Failed to add book");
         }
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred while saving the book.");
+      toast.error("An error occurred while saving the book.");
     }
   };
 
