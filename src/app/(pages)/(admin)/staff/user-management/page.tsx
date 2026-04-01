@@ -6,46 +6,24 @@ import {
   Plus,
   Search,
   Edit3,
-  Trash2,
+  UserX,
+  UserCheck,
   X,
   Save,
   ChevronLeft,
   ChevronRight,
-  User,
   Mail,
+  User,
   Phone,
   MapPin,
-  Calendar,
   Lock,
   Shield,
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-
-// ---------- Types ----------
-interface UserData {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  membershipdate: string;
-  password: string;
-  role: "ADMIN" | "USER";
-}
-
-// ---------- Sample Data ----------
-const sampleUsers: UserData[] = [
-  { id: 1, name: "John Doe", email: "john@example.com", phone: "6747523673", address: "123 Library Lane", membershipdate: "2025-01-15", password: "pass123", role: "USER" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "4834813269", address: "456 Book Street", membershipdate: "2025-02-20", password: "pass456", role: "USER" },
-  { id: 3, name: "Admin User", email: "admin@gmail.com", phone: "5551234567", address: "789 Admin Blvd", membershipdate: "2024-06-01", password: "admin123", role: "ADMIN" },
-  { id: 4, name: "Sarah Wilson", email: "sarah@example.com", phone: "5559876543", address: "321 Reader Ave", membershipdate: "2025-03-10", password: "pass789", role: "USER" },
-  { id: 5, name: "Mike Brown", email: "mike@example.com", phone: "5554567890", address: "654 Novel Drive", membershipdate: "2025-04-05", password: "pass321", role: "USER" },
-  { id: 6, name: "Emily Clark", email: "emily@example.com", phone: "5552345678", address: "987 Story Ct", membershipdate: "2025-05-12", password: "pass654", role: "USER" },
-  { id: 7, name: "David Lee", email: "david@example.com", phone: "5553456789", address: "147 Chapter Rd", membershipdate: "2025-06-18", password: "pass987", role: "ADMIN" },
-  { id: 8, name: "Lisa Johnson", email: "lisa@example.com", phone: "5556789012", address: "258 Page Blvd", membershipdate: "2025-07-22", password: "pass147", role: "USER" },
-];
+import { userService, UserData } from "@/src/services/userService";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -57,30 +35,52 @@ const emptyUser: Omit<UserData, "id"> = {
   membershipdate: new Date().toISOString().split("T")[0],
   password: "",
   role: "USER",
+  isActive: true,
 };
 
 // ========== COMPONENT ==========
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<UserData[]>(sampleUsers);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState<Omit<UserData, "id">>(emptyUser);
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [statusToggleConfirm, setStatusToggleConfirm] = useState<number | null>(null);
+  const authId = useAuthStore((state) => state.id);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    const data = await userService.getUsers();
+    setUsers(data);
+    setLoading(false);
+  };
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Server-side ID search logic with debounce
+  React.useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (!searchTerm.trim()) {
+        fetchUsers();
+        return;
+      }
+
+      setLoading(true);
+      const singleUser = await userService.getUserById(searchTerm.trim());
+      setUsers(singleUser ? [singleUser] : []);
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   // ----- Filtering -----
-  const filteredUsers = users.filter((user) => {
-    if (!searchTerm.trim()) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(term) ||
-      user.email.toLowerCase().includes(term) ||
-      user.phone.includes(term) ||
-      user.role.toLowerCase().includes(term) ||
-      user.id.toString() === term
-    );
-  });
+  const filteredUsers = users;
+
 
   // ----- Pagination -----
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
@@ -106,31 +106,63 @@ export default function UserManagementPage() {
       membershipdate: user.membershipdate,
       password: user.password,
       role: user.role,
+      isActive: user.isActive,
     });
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim() || !formData.email.trim()) return;
 
-    if (editingUser) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === editingUser.id ? { ...u, ...formData } : u))
-      );
-    } else {
-      const newId = Math.max(...users.map((u) => u.id), 0) + 1;
-      setUsers((prev) => [...prev, { id: newId, ...formData }]);
+    try {
+      if (editingUser) {
+        setLoading(true);
+        const resUpdate = await userService.updateUser({ id: editingUser.id, ...formData });
+        if (resUpdate.code === 200 || resUpdate.code === 201) {
+          alert("Success: User updated successfully!");
+          await fetchUsers(); // Refresh the list from server
+        } else {
+          alert(`Error: ${resUpdate.message || "Failed to update user"}`);
+        }
+      } else {
+        const resSave = await userService.saveUser({
+          ...formData,
+          membershipdate: new Date().toISOString().split('T')[0] // Always today
+        });
+        if (resSave.code === 200 || resSave.code === 201) {
+          alert("Success: User added successfully!");
+          await fetchUsers();
+        } else {
+          alert(`Error: ${resSave.message || "Failed to add user"}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while saving the user.");
+    } finally {
+      setShowModal(false);
+      setFormData(emptyUser);
+      setEditingUser(null);
+      setLoading(false);
     }
-    setShowModal(false);
-    setFormData(emptyUser);
-    setEditingUser(null);
   };
 
-  const handleDelete = (id: number) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    setDeleteConfirm(null);
-    if (paginatedUsers.length === 1 && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+  const handleToggleStatus = async (id: number) => {
+    try {
+      setLoading(true);
+      const response = await userService.deleteUser(id);
+      if (response.code === 200 || response.code === 201) {
+        alert("Success: User status toggled successfully!");
+        await fetchUsers();
+      } else {
+        alert(`Error: ${response.message || "Failed to toggle status"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while toggling the status.");
+    } finally {
+      setStatusToggleConfirm(null);
+      setLoading(false);
     }
   };
 
@@ -166,7 +198,7 @@ export default function UserManagementPage() {
           <div className="relative group max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
             <Input
-              placeholder="Search by name, email, phone, role or ID..."
+              placeholder="Search by user ID..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -180,108 +212,115 @@ export default function UserManagementPage() {
         {/* Users List Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1000px]">
-          {/* Table Header */}
-          <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Address</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Member Since</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
-          </div>
-
-          {/* Table Body */}
-          {paginatedUsers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Users className="h-12 w-12 text-slate-200 mb-3" />
-              <h3 className="text-sm font-bold text-slate-400 mb-1">No users found</h3>
-              <p className="text-slate-400 text-xs">Try adjusting your search or add a new user.</p>
+            {/* Table Header */}
+            <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Address</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Member Since</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
             </div>
-          ) : (
-            <div>
-              {paginatedUsers.map((user, index) => (
-                <div
-                  key={user.id}
-                  className={`group grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${
-                    index !== paginatedUsers.length - 1 ? "border-b border-slate-50" : ""
-                  }`}
-                >
-                  {/* ID */}
-                  <span className="text-xs font-black text-slate-300">#{user.id.toString().padStart(3, "0")}</span>
 
-                  {/* Name */}
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-[11px] font-black text-white shrink-0 ${
-                      user.role === "ADMIN"
+            {/* Table Body */}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-10 w-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-slate-500 font-bold">Loading system users...</p>
+              </div>
+            ) : paginatedUsers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <Users className="h-12 w-12 text-slate-200 mb-3" />
+                <h3 className="text-sm font-bold text-slate-400 mb-1">No users found</h3>
+                <p className="text-slate-400 text-xs">Try adjusting your search or add a new user.</p>
+              </div>
+            ) : (
+              <div>
+                {paginatedUsers.map((user, index) => (
+                  <div
+                    key={user.id}
+                    className={`group grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== paginatedUsers.length - 1 ? "border-b border-slate-50" : ""
+                      }`}
+                  >
+                    {/* ID */}
+                    <span className="text-xs font-black text-slate-300">#{user.id.toString().padStart(3, "0")}</span>
+
+                    {/* Name */}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-[11px] font-black text-white shrink-0 ${user.role === "ADMIN"
                         ? "bg-gradient-to-br from-violet-500 to-violet-400"
                         : "bg-gradient-to-br from-blue-500 to-sky-400"
-                    }`}>
-                      {user.name.charAt(0).toUpperCase()}
+                        }`}>
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm font-bold text-slate-800 truncate">{user.name}</span>
                     </div>
-                    <span className="text-sm font-bold text-slate-800 truncate">{user.name}</span>
-                  </div>
 
-                  {/* Email */}
-                  <span className="text-xs font-medium text-slate-500 truncate">{user.email}</span>
+                    {/* Email */}
+                    <span className="text-xs font-medium text-slate-500 truncate">{user.email}</span>
 
-                  {/* Phone */}
-                  <span className="text-xs font-medium text-slate-500 font-mono">{user.phone}</span>
+                    {/* Phone */}
+                    <span className="text-xs font-medium text-slate-500 font-mono">{user.phone}</span>
 
-                  {/* Address */}
-                  <span className="text-xs font-medium text-slate-500 truncate">{user.address}</span>
+                    {/* Address */}
+                    <span className="text-xs font-medium text-slate-500 truncate">{user.address}</span>
 
-                  {/* Membership Date */}
-                  <span className="text-xs font-medium text-slate-400">{user.membershipdate}</span>
+                    {/* Membership Date */}
+                    <span className="text-xs font-medium text-slate-400">{user.membershipdate}</span>
 
-                  {/* Role */}
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${
-                    user.role === "ADMIN"
+                    {/* Role */}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${user.role === "ADMIN"
                       ? "bg-violet-50 text-violet-700"
                       : "bg-blue-50 text-blue-600"
-                  }`}>
-                    {user.role === "ADMIN" ? <ShieldCheck className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
-                    {user.role}
-                  </span>
+                      }`}>
+                      {user.role === "ADMIN" ? <ShieldCheck className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
+                      {user.role}
+                    </span>
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => openEditModal(user)}
-                      className="h-7 w-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                    >
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </button>
-
-                    {deleteConfirm === user.id ? (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="h-7 px-2 flex items-center justify-center rounded-lg text-[10px] font-bold text-white bg-rose-500 hover:bg-rose-600 transition-all"
-                        >
-                          Yes
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(null)}
-                          className="h-7 px-2 flex items-center justify-center rounded-lg text-[10px] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all"
-                        >
-                          No
-                        </button>
-                      </div>
-                    ) : (
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => setDeleteConfirm(user.id)}
-                        className="h-7 w-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                        onClick={() => openEditModal(user)}
+                        className="h-7 w-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Edit3 className="h-3.5 w-3.5" />
                       </button>
-                    )}
+
+                      {statusToggleConfirm === user.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleToggleStatus(user.id)}
+                            className={`h-7 px-2 flex items-center justify-center rounded-lg text-[10px] font-bold text-white transition-all ${user.isActive ? "bg-rose-500 hover:bg-rose-600" : "bg-emerald-500 hover:bg-emerald-600"
+                              }`}
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setStatusToggleConfirm(null)}
+                            className="h-7 px-2 flex items-center justify-center rounded-lg text-[10px] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setStatusToggleConfirm(user.id)}
+                          className={`h-7 w-7 flex items-center justify-center rounded-lg transition-all ${user.isActive
+                            ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                            : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                            }`}
+                          title={user.isActive ? "Deactivate User" : "Activate User"}
+                        >
+                          {user.isActive ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -299,11 +338,10 @@ export default function UserManagementPage() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`h-9 w-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
-                  currentPage === page
-                    ? "bg-slate-900 text-white shadow-md"
-                    : "bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                }`}
+                className={`h-9 w-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${currentPage === page
+                  ? "bg-slate-900 text-white shadow-md"
+                  : "bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
               >
                 {page}
               </button>
@@ -348,12 +386,20 @@ export default function UserManagementPage() {
 
             {/* Form */}
             <div className="px-8 pb-8 space-y-4 max-h-[70vh] overflow-y-auto">
-              {/* Name */}
+
+              {/* Name (Restored) */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                 <div className="relative group">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                  <Input name="name" placeholder="John Doe" value={formData.name} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+                  <Input 
+                    name="name" 
+                    placeholder="John Doe" 
+                    value={formData.name} 
+                    onChange={handleFormChange} 
+                    readOnly={!!editingUser} 
+                    className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-violet-500/5 ${editingUser ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} 
+                  />
                 </div>
               </div>
 
@@ -362,27 +408,24 @@ export default function UserManagementPage() {
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                  <Input name="email" type="email" placeholder="user@example.com" value={formData.email} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+                  <Input 
+                    name="email" 
+                    type="email" 
+                    placeholder="user@example.com" 
+                    value={formData.email} 
+                    onChange={handleFormChange} 
+                    readOnly={editingUser?.id === authId}
+                    className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-violet-500/5 ${editingUser?.id === authId ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`}
+                  />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Phone */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone</label>
-                  <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                    <Input name="phone" placeholder="5551234567" value={formData.phone} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
-                  </div>
-                </div>
-
-                {/* Membership Date */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Member Since</label>
-                  <div className="relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                    <Input name="membershipdate" type="date" value={formData.membershipdate} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
-                  </div>
+              {/* Phone */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone</label>
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
+                  <Input name="phone" placeholder="5551234567" value={formData.phone} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
                 </div>
               </div>
 
@@ -395,31 +438,32 @@ export default function UserManagementPage() {
                 </div>
               </div>
 
-              {/* Password */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                  <Input name="password" type="password" placeholder="••••••••" value={formData.password} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+              {/* Password (Restored - only for Add) */}
+              {!editingUser && (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
+                    <Input name="password" type="password" placeholder="••••••••" value={formData.password} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Role Toggle */}
+              {/* Role Toggle (Restored) */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={editingUser ? undefined : () =>
                     setFormData((prev) => ({
                       ...prev,
                       role: prev.role === "USER" ? "ADMIN" : "USER",
                     }))
                   }
-                  className={`w-full h-12 flex items-center gap-3 px-4 rounded-xl border transition-all font-bold text-sm ${
-                    formData.role === "ADMIN"
+                  className={`w-full h-12 flex items-center gap-3 px-4 rounded-xl border transition-all font-bold text-sm ${editingUser ? "cursor-default opacity-80" : "cursor-pointer"} ${formData.role === "ADMIN"
                       ? "border-violet-200 bg-violet-50/50 text-violet-700"
                       : "border-blue-200 bg-blue-50/50 text-blue-600"
-                  }`}
+                    }`}
                 >
                   {formData.role === "ADMIN" ? (
                     <ShieldCheck className="h-5 w-5 text-violet-500" />
@@ -427,7 +471,7 @@ export default function UserManagementPage() {
                     <Shield className="h-5 w-5 text-blue-400" />
                   )}
                   {formData.role === "ADMIN" ? "ADMIN" : "USER"}
-                  <span className="ml-auto text-xs font-medium text-slate-400">Click to toggle</span>
+                  {!editingUser && <span className="ml-auto text-xs font-medium text-slate-400">Click to toggle</span>}
                 </button>
               </div>
 
