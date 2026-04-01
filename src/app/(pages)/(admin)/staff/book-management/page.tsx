@@ -142,9 +142,19 @@ export default function AdminBookManagementPage() {
   const handleSave = async () => {
     try {
       if (editingBook) {
-        // We can update this when an update API is available
-        console.log("Update requested for:", editingBook.id, formData);
-        toast.error("Update functionality is currently not supported by backend.");
+        const response = await bookService.updateBook({
+          id: editingBook.id,
+          ...formData
+        });
+        if (response.code === 200 || response.code === 201) {
+          toast.success("Book updated successfully!");
+          fetchCategoryData(formData.category, booksByCategory.grouped[formData.category].pageIndex);
+          setShowModal(false);
+          setFormData(emptyFormData);
+          setEditingBook(null);
+        } else {
+          toast.error(response.message || "Failed to update book");
+        }
       } else {
         const response = await bookService.saveBook(formData);
         if (response.code === 200 || response.code === 201) {

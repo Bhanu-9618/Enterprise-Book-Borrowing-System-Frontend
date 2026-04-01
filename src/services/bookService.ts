@@ -102,4 +102,17 @@ export const bookService = {
             throw error;
         }
     },
+    /**
+     * Updates an existing book in the database.
+     * URL: http://localhost:8080/book/update
+     */
+    updateBook: async (book: Book): Promise<{ code: number; message: string; data?: Book }> => {
+        try {
+            const response = await api.put("/book/update", book);
+            return response.data;
+        } catch (error) {
+            console.error("Error updating book:", error);
+            throw error;
+        }
+    },
 };
