@@ -11,58 +11,78 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { bookService } from "@/src/services/bookService";
+import { borrowService } from "@/src/services/borrowService";
 
-const statsCards = [
-  {
-    title: "Total Books",
-    value: "12,483",
-    change: "+248",
-    changeLabel: "from last month",
-    trend: "up" as const,
-    icon: BookOpen,
-    bgColor: "bg-blue-50",
-    textColor: "text-blue-600",
-  },
-  {
-    title: "Active Borrows",
-    value: "1,847",
-    change: "+32",
-    changeLabel: "currently active",
-    trend: "up" as const,
-    icon: ArrowRightLeft,
-    bgColor: "bg-emerald-50",
-    textColor: "text-emerald-600",
-  },
-  {
-    title: "Requested Borrows",
-    value: "156",
-    change: "-12",
-    changeLabel: "vs yesterday",
-    trend: "down" as const,
-    icon: Clock,
-    bgColor: "bg-amber-50",
-    textColor: "text-amber-600",
-  },
-  {
-    title: "Overdue Borrows",
-    value: "3,921",
-    change: "+89",
-    changeLabel: "new this month",
-    trend: "up" as const,
-    icon: AlertCircle,
-    bgColor: "bg-rose-50",
-    textColor: "text-rose-600",
-  },
-];
+
 
 export default function AdminDashboard() {
   const { name } = useAuthStore();
   const [hydrated, setHydrated] = React.useState(false);
-  
+  const [totalBooks, setTotalBooks] = React.useState<number | string>("...");
+  const [activeBorrows, setActiveBorrows] = React.useState<number | string>("...");
+  const [requestedBorrows, setRequestedBorrows] = React.useState<number | string>("...");
+  const [overdueBorrows, setOverdueBorrows] = React.useState<number | string>("...");
+
   React.useEffect(() => {
     const timer = setTimeout(() => setHydrated(true), 0);
+    
+    // Fetch stats
+    const fetchStats = async () => {
+      try {
+        const [bookCount, borrowCount, requestedCount, overdueCount] = await Promise.all([
+          bookService.getBookCount(),
+          borrowService.getBorrowCount(),
+          borrowService.getRequestedBorrowCount(),
+          borrowService.getOverdueBorrowCount(),
+        ]);
+        setTotalBooks(bookCount.toLocaleString());
+        setActiveBorrows(borrowCount.toLocaleString());
+        setRequestedBorrows(requestedCount.toLocaleString());
+        setOverdueBorrows(overdueCount.toLocaleString());
+      } catch (err) {
+        console.error(err);
+        setTotalBooks("0");
+        setActiveBorrows("0");
+        setRequestedBorrows("0");
+        setOverdueBorrows("0");
+      }
+    };
+
+    fetchStats();
     return () => clearTimeout(timer);
   }, []);
+
+  const statsCards = [
+    {
+      title: "Total Books",
+      value: totalBooks,
+      icon: BookOpen,
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-600",
+    },
+    {
+      title: "Active Borrows",
+      value: activeBorrows,
+      icon: ArrowRightLeft,
+      bgColor: "bg-emerald-50",
+      textColor: "text-emerald-600",
+    },
+    {
+      title: "Requested Borrows",
+      value: requestedBorrows,
+      icon: Clock,
+      bgColor: "bg-amber-50",
+      textColor: "text-amber-600",
+    },
+    {
+      title: "Overdue Borrows",
+      value: overdueBorrows,
+      icon: AlertCircle,
+      bgColor: "bg-rose-50",
+      textColor: "text-rose-600",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50">

@@ -47,4 +47,55 @@ export const borrowService = {
       throw error;
     }
   },
+
+  /**
+   * Fetches the total count of active borrowings.
+   * URL: http://localhost:8080/borrow/count
+   */
+  getBorrowCount: async (): Promise<number> => {
+    try {
+      const response = await api.get('/borrow/count');
+      if (response.data?.code === 200) {
+        return response.data.data || 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Error fetching borrow count:', error);
+      return 0;
+    }
+  },
+
+  /**
+   * Fetches the total count of requested (pending) borrowings.
+   * URL: http://localhost:8080/borrow/requested/count
+   */
+  getRequestedBorrowCount: async (): Promise<number> => {
+    try {
+      const response = await api.get('/borrow/requested/count');
+      if (response.data?.code === 200) {
+        return response.data.data || 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Error fetching requested borrow count:', error);
+      return 0;
+    }
+  },
+
+  /**
+   * Fetches the total count of overdue borrowings.
+   * URL: http://localhost:8080/borrow/overdue/count
+   */
+  getOverdueBorrowCount: async (): Promise<number> => {
+    try {
+      const response = await api.get('/borrow/overdue/count');
+      if (response.data?.code === 200) {
+        return response.data.data || 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Error fetching overdue borrow count:', error);
+      return 0;
+    }
+  },
 };
