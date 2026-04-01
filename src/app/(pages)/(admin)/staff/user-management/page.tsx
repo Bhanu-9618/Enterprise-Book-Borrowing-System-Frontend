@@ -149,6 +149,11 @@ export default function UserManagementPage() {
   };
 
   const handleToggleStatus = async (id: number) => {
+    if (id === authId) {
+      toast.error("You cannot deactivate your own account!");
+      setStatusToggleConfirm(null);
+      return;
+    }
     try {
       setLoading(true);
       const response = await userService.deleteUser(id);
@@ -308,11 +313,14 @@ export default function UserManagementPage() {
                       ) : (
                         <button
                           onClick={() => setStatusToggleConfirm(user.id)}
-                          className={`h-7 w-7 flex items-center justify-center rounded-lg transition-all ${user.isActive
-                            ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                            : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                          disabled={user.id === authId}
+                          className={`h-7 w-7 flex items-center justify-center rounded-lg transition-all ${user.id === authId
+                            ? "text-slate-200 cursor-not-allowed"
+                            : user.isActive
+                              ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                              : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
                             }`}
-                          title={user.isActive ? "Deactivate User" : "Activate User"}
+                          title={user.id === authId ? "You cannot deactivate your own account" : user.isActive ? "Deactivate User" : "Activate User"}
                         >
                           {user.isActive ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
                         </button>

@@ -115,4 +115,18 @@ export const bookService = {
             throw error;
         }
     },
+
+    /**
+     * Deletes a book from the database by its ID.
+     * URL: http://localhost:8080/book/delete/{id}
+     */
+    deleteBook: async (id: number): Promise<{ code: number; message: string }> => {
+        try {
+            const response = await api.delete(`/book/delete/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error deleting book with ID ${id}:`, error);
+            throw error;
+        }
+    },
 };

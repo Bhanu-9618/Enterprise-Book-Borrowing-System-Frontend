@@ -18,7 +18,6 @@ import {
   Save,
   User,
   FolderOpen,
-  ChevronDown,
   Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -172,9 +171,21 @@ export default function AdminBookManagementPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
-    console.log("Delete", id);
-    setDeleteConfirm(null);
+  const handleDelete = async (id: number, category: string) => {
+    try {
+      const response = await bookService.deleteBook(id);
+      if (response.code === 200 || response.code === 201) {
+        toast.success("Book deleted successfully!");
+        fetchCategoryData(category, booksByCategory.grouped[category]?.pageIndex || 0);
+      } else {
+        toast.error(response.message || "Failed to delete book");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred while deleting the book.");
+    } finally {
+      setDeleteConfirm(null);
+    }
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -190,7 +201,7 @@ export default function AdminBookManagementPage() {
           <p className="text-[10px] font-bold">Delete book?</p>
           <div className="flex gap-2 w-full justify-center">
             <Button onClick={() => setDeleteConfirm(null)} variant="outline" className="rounded-lg px-3 h-7 text-[10px]">No</Button>
-            <Button onClick={() => handleDelete(book.id)} className="bg-rose-500 hover:bg-rose-600 text-white rounded-lg px-3 h-7 text-[10px]">Yes</Button>
+            <Button onClick={() => handleDelete(book.id, book.category)} className="bg-rose-500 hover:bg-rose-600 text-white rounded-lg px-3 h-7 text-[10px]">Yes</Button>
           </div>
         </div>
       )}
