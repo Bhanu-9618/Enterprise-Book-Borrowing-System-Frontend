@@ -156,11 +156,12 @@ export default function SignupPage() {
               <BookMarked className="h-6 w-6 text-white drop-shadow" strokeWidth={2.2} />
               <Sparkles className="absolute -right-1.5 -top-1.5 h-4 w-4 text-amber-300 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:-translate-y-0.5" />
             </span>
-            <span className="text-3xl font-serif font-bold tracking-tight text-slate-800">
-              Lumina Library
+            <span className="text-3xl font-bold tracking-tight">
+              <span className="text-blue-600">Lumina</span>
+              <span className="text-slate-800">Library</span>
             </span>
           </Link>
-          <h1 className="text-4xl font-serif font-black text-slate-900 mb-3 tracking-tight">Become a Member</h1>
+          <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Become a Member</h1>
           <p className="text-slate-500 font-medium">Join our community and dive into a world of knowledge.</p>
         </div>
 

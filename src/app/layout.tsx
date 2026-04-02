@@ -36,7 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 shadow-lg shadow-blue-500/20">
                     <BookOpen className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-xl font-bold text-white tracking-tight">Lumina<span className="text-blue-500">Library</span></span>
+                  <span className="text-3xl font-bold tracking-tight">
+                    <span className="text-blue-600">Lumina</span>
+                    <span className="text-white">Library</span>
+                  </span>
                 </div>
                 <p className="text-sm leading-relaxed font-medium">
                   Empowering your reading journey through our state-of-the-art digital library system. Access knowledge anytime, anywhere.

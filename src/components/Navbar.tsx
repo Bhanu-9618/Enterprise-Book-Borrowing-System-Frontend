@@ -169,10 +169,8 @@ export default function Navbar() {
             </span>
             <div className="relative flex flex-col leading-none">
               <span className="text-[1.15rem] font-extrabold tracking-tight">
-                <span className="bg-gradient-to-r from-blue-700 via-blue-600 to-sky-600 bg-clip-text text-transparent">
-                  Lumina
-                </span>
-                <span className="text-gray-800"> Library</span>
+                <span className="text-blue-600">Lumina</span>
+                <span className="text-slate-800">Library</span>
               </span>
               <span className="mt-0.5 text-[10px] font-medium tracking-widest text-gray-400 uppercase">
                 Digital Library
