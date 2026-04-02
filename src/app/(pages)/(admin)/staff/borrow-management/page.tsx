@@ -134,7 +134,7 @@ function BorrowManagementContent() {
         });
         if (response.code === 200) {
           toast.success("Borrow record updated!");
-          await fetchRecords(filterStatus, searchUserId);
+          setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(response.message || "Failed to update record");
         }
@@ -145,7 +145,7 @@ function BorrowManagementContent() {
         });
         if (response.code === 200) {
           toast.success("New borrow record created!");
-          await fetchRecords(filterStatus, searchUserId);
+          setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(response.message || "Failed to save record");
         }

@@ -121,7 +121,7 @@ export default function UserManagementPage() {
         const resUpdate = await userService.updateUser({ id: editingUser.id, ...formData });
         if (resUpdate.code === 200 || resUpdate.code === 201) {
           toast.success("User updated successfully!");
-          await fetchUsers(); // Refresh the list from server
+          setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(resUpdate.message || "Failed to update user");
         }
@@ -132,7 +132,7 @@ export default function UserManagementPage() {
         });
         if (resSave.code === 200 || resSave.code === 201) {
           toast.success("User added successfully!");
-          await fetchUsers();
+          setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(resSave.message || "Failed to add user");
         }
@@ -167,7 +167,7 @@ export default function UserManagementPage() {
 
       if (response.code === 200 || response.code === 201) {
         toast.success(user.isActive ? "User deactivated successfully!" : "User activated successfully!");
-        await fetchUsers();
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast.error(response.message || "Failed to update user status");
       }

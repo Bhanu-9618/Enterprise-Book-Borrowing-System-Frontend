@@ -147,10 +147,11 @@ export default function AdminBookManagementPage() {
         });
         if (response.code === 200 || response.code === 201) {
           toast.success("Book updated successfully!");
-          fetchCategoryData(formData.category, booksByCategory.grouped[formData.category].pageIndex);
           setShowModal(false);
           setFormData(emptyFormData);
           setEditingBook(null);
+          // Force a full page reload to ensure everything is in sync
+          setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(response.message || "Failed to update book");
         }
@@ -158,9 +159,10 @@ export default function AdminBookManagementPage() {
         const response = await bookService.saveBook(formData);
         if (response.code === 200 || response.code === 201) {
           toast.success("Book added successfully!");
-          fetchCategoryData(formData.category, 0);
           setShowModal(false);
           setFormData(emptyFormData);
+          // Force a full page reload to ensure everything is in sync
+          setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(response.message || "Failed to add book");
         }
@@ -176,7 +178,8 @@ export default function AdminBookManagementPage() {
       const response = await bookService.deleteBook(id);
       if (response.code === 200 || response.code === 201) {
         toast.success("Book deleted successfully!");
-        fetchCategoryData(category, booksByCategory.grouped[category]?.pageIndex || 0);
+        // Force a full page reload to ensure everything is in sync
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast.error(response.message || "Failed to delete book");
       }

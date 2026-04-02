@@ -1,3 +1,4 @@
+import axios from 'axios';
 import api from '../lib/axios';
 
 export interface Book {
@@ -83,7 +84,12 @@ export const bookService = {
                 return response.data.data;
             }
             return null;
-        } catch (error) {
+        } catch (error: unknown) {
+            // If it's a 404, we just return null without logging an error to the console
+            // as 'not found' is a valid result for a search.
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
             console.error(`Error fetching book with ID ${id}:`, error);
             return null;
         }
