@@ -272,7 +272,7 @@ export default function UserManagementPage() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* Table Header */}
-            <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
+            <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-white border-b border-slate-100">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</span>

@@ -199,7 +199,7 @@ export default function UserDashboardPage() {
       {/* Background Image with Overlay */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-        style={{ backgroundImage: "url('/images/Lumina 3.jpg')" }}
+        style={{ backgroundImage: "url('/images/Admin dash.jpg')" }}
       />
       <div className="fixed inset-0 z-0 bg-black/5 transition-opacity duration-700" />
       <div className="fixed inset-0 z-0 bg-white/20 backdrop-blur-[2px]" />

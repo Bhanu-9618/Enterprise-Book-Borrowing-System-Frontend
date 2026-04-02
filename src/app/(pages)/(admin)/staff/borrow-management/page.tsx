@@ -233,7 +233,7 @@ function BorrowManagementContent() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* Table Header */}
-            <div className="grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
+            <div className="grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3 bg-white border-b border-slate-100">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow Date</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Due Date</span>

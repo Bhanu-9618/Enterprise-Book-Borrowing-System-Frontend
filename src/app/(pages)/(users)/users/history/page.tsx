@@ -74,7 +74,7 @@ function HistoryContent() {
       {/* Background Image with Overlay */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-        style={{ backgroundImage: "url('/images/Lumina 3.jpg')" }}
+        style={{ backgroundImage: "url('/images/Admin dash.jpg')" }}
       />
       <div className="fixed inset-0 z-0 bg-black/5 transition-opacity duration-700" />
       <div className="fixed inset-0 z-0 bg-white/20 backdrop-blur-[2px]" />
@@ -98,10 +98,10 @@ function HistoryContent() {
         </div>
 
         {/* Borrow Table (Match Admin Grid Style) */}
-        <div className="bg-white/60 rounded-[2rem] border border-white/60 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] overflow-x-auto backdrop-blur-3xl">
+        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] overflow-x-auto">
           <div className="min-w-[1200px]">
           {/* Table Header */}
-          <div className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-5 bg-white/30 border-b border-white/40">
+          <div className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-5 bg-white border-b border-slate-100">
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Borrow ID</span>
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Book ID</span>
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Borrow Date</span>

@@ -142,7 +142,7 @@ function OverdueManagementContent() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* Table Header */}
-            <div className="grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 bg-slate-50/80 border-b border-slate-100">
+            <div className="grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 bg-white border-b border-slate-100">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fine Amount</span>
@@ -196,7 +196,7 @@ function OverdueManagementContent() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleFine(rec)}
-                          className="h-7 px-3 flex items-center gap-1 rounded-lg text-[10px] font-bold text-orange-600 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 hover:from-orange-100 hover:to-amber-100 hover:text-orange-700 hover:shadow-sm transition-all"
+                          className="h-7 px-3 flex items-center gap-1 rounded-lg text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200 hover:bg-orange-100 hover:text-orange-700 hover:shadow-sm transition-all"
                         >
                           <Coins className="h-3 w-3" />
                           FINE
