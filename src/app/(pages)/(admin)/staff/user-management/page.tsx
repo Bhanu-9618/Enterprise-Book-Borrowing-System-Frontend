@@ -48,6 +48,7 @@ export default function UserManagementPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState<Omit<UserData, "id">>(emptyUser);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [statusToggleConfirm, setStatusToggleConfirm] = useState<number | null>(null);
   const authId = useAuthStore((state) => state.id);
 
@@ -56,6 +57,38 @@ export default function UserManagementPage() {
     const data = await userService.getUsers();
     setUsers(data);
     setLoading(false);
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = "Full name is required";
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Phone must be exactly 10 digits";
+    }
+
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+
+    if (!editingUser) {
+      if (!formData.password.trim()) {
+        newErrors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
+    }
+
+    setFieldErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   React.useEffect(() => {
@@ -94,11 +127,13 @@ export default function UserManagementPage() {
   const openAddModal = () => {
     setEditingUser(null);
     setFormData(emptyUser);
+    setFieldErrors({});
     setShowModal(true);
   };
 
   const openEditModal = (user: UserData) => {
     setEditingUser(user);
+    setFieldErrors({});
     setFormData({
       name: user.name,
       email: user.email,
@@ -113,7 +148,10 @@ export default function UserManagementPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim() || !formData.email.trim()) return;
+    if (!validate()) {
+      toast.error("Please correct the highlighted errors.");
+      return;
+    }
 
     try {
       if (editingUser) {
@@ -137,7 +175,7 @@ export default function UserManagementPage() {
           toast.error(resSave.message || "Failed to add user");
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("An error occurred while saving the user.");
     } finally {
@@ -183,6 +221,13 @@ export default function UserManagementPage() {
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   return (
@@ -408,23 +453,24 @@ export default function UserManagementPage() {
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
+                  <User className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${fieldErrors.name ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-violet-500'}`} />
                   <Input 
                     name="name" 
                     placeholder="John Doe" 
                     value={formData.name} 
                     onChange={handleFormChange} 
                     readOnly={!!editingUser} 
-                    className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-violet-500/5 ${editingUser ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`} 
+                    className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-violet-500/5 ${editingUser ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"} ${fieldErrors.name ? 'border-rose-300 focus:border-rose-500/20' : ''}`} 
                   />
                 </div>
+                {fieldErrors.name && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.name}</p>}
               </div>
 
               {/* Email */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
+                  <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${fieldErrors.email ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-violet-500'}`} />
                   <Input 
                     name="email" 
                     type="email" 
@@ -432,27 +478,30 @@ export default function UserManagementPage() {
                     value={formData.email} 
                     onChange={handleFormChange} 
                     readOnly={editingUser?.id === authId}
-                    className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-violet-500/5 ${editingUser?.id === authId ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"}`}
+                    className={`pl-11 h-12 border-slate-100 rounded-xl font-medium focus:ring-4 focus:ring-violet-500/5 ${editingUser?.id === authId ? "bg-slate-100/80 opacity-70 cursor-not-allowed" : "bg-slate-50/50 focus:bg-white"} ${fieldErrors.email ? 'border-rose-300 focus:border-rose-500/20' : ''}`}
                   />
                 </div>
+                {fieldErrors.email && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.email}</p>}
               </div>
 
               {/* Phone */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone</label>
                 <div className="relative group">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                  <Input name="phone" placeholder="5551234567" value={formData.phone} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+                  <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${fieldErrors.phone ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-violet-500'}`} />
+                  <Input name="phone" placeholder="5551234567" value={formData.phone} onChange={handleFormChange} className={`pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5 ${fieldErrors.phone ? 'border-rose-300 focus:border-rose-500/20' : ''}`} />
                 </div>
+                {fieldErrors.phone && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.phone}</p>}
               </div>
 
               {/* Address */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Address</label>
                 <div className="relative group">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                  <Input name="address" placeholder="123 Library Lane" value={formData.address} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+                  <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${fieldErrors.address ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-violet-500'}`} />
+                  <Input name="address" placeholder="123 Library Lane" value={formData.address} onChange={handleFormChange} className={`pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5 ${fieldErrors.address ? 'border-rose-300 focus:border-rose-500/20' : ''}`} />
                 </div>
+                {fieldErrors.address && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.address}</p>}
               </div>
 
               {/* Password (Restored - only for Add) */}
@@ -460,9 +509,10 @@ export default function UserManagementPage() {
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
-                    <Input name="password" type="password" placeholder="••••••••" value={formData.password} onChange={handleFormChange} className="pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5" />
+                    <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${fieldErrors.password ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-violet-500'}`} />
+                    <Input name="password" type="password" placeholder="••••••••" value={formData.password} onChange={handleFormChange} className={`pl-11 h-12 bg-slate-50/50 border-slate-100 rounded-xl font-medium focus:bg-white focus:ring-4 focus:ring-violet-500/5 ${fieldErrors.password ? 'border-rose-300 focus:border-rose-500/20' : ''}`} />
                   </div>
+                  {fieldErrors.password && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.password}</p>}
                 </div>
               )}
 
@@ -496,7 +546,6 @@ export default function UserManagementPage() {
               <div className="pt-3">
                 <Button
                   onClick={handleSave}
-                  disabled={!formData.name.trim() || !formData.email.trim()}
                   className="h-14 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-violet-400 text-white font-bold text-base shadow-xl shadow-violet-500/25 hover:scale-[1.02] hover:shadow-2xl hover:shadow-violet-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <Save className="h-5 w-5 mr-2" />
