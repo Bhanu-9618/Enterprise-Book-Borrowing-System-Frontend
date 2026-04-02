@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="min-h-screen">
           {children}
         </main>
-        <footer className="bg-slate-950 text-slate-400 py-20 border-t border-slate-900">
+        <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
           <div className="mx-auto max-w-7xl px-6 sm:px-12 lg:px-20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
               {/* Brand Column */}

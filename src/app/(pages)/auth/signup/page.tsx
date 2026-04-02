@@ -20,6 +20,8 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card";
 
+import Image from "next/image";
+
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ export default function SignupPage() {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    
+
     // Name validation
     if (!formData.name.trim()) {
       newErrors.name = "Full name is required";
@@ -80,7 +82,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear previous errors
     setGeneralError(null);
     setFieldErrors({});
@@ -96,17 +98,17 @@ export default function SignupPage() {
     try {
       await userService.signup(formData);
       setSuccess(true);
-      
+
       setTimeout(() => {
         router.push("/auth/signin");
       }, 2000);
 
     } catch (err: unknown) {
       console.error("Signup error details:", err);
-      
-      const errorData = err as { 
-        errors?: Record<string, string>; 
-        message?: string 
+
+      const errorData = err as {
+        errors?: Record<string, string>;
+        message?: string
       };
 
       // Handle structured errors from backend (e.g. Spring Validation)
@@ -142,11 +144,17 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-4 py-20 relative overflow-hidden">
-      {/* Literacy Background Decoration */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
-        <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-blue-200 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] bg-sky-200 rounded-full blur-[120px] animate-pulse delay-700" />
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-24 relative overflow-hidden">
+      {/* High-quality background image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/images/Lumina signup.jpg"
+          alt="Library Background"
+          fill
+          className="object-cover brightness-[0.6]"
+          priority
+        />
+        <div className="absolute inset-0 bg-blue-900/10 backdrop-blur-[2px]" />
       </div>
 
       <div className="w-full max-w-xl z-10 relative">
@@ -157,12 +165,12 @@ export default function SignupPage() {
               <Sparkles className="absolute -right-1.5 -top-1.5 h-4 w-4 text-amber-300 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:-translate-y-0.5" />
             </span>
             <span className="text-3xl font-bold tracking-tight">
-              <span className="text-blue-600">Lumina</span>
-              <span className="text-slate-800">Library</span>
+              <span className="text-blue-400 font-extrabold drop-shadow-sm">Lumina</span>
+              <span className="text-white drop-shadow-sm">Library</span>
             </span>
           </Link>
-          <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Become a Member</h1>
-          <p className="text-slate-500 font-medium">Join our community and dive into a world of knowledge.</p>
+          <h1 className="text-4xl font-black text-white mb-3 tracking-tight drop-shadow-md">Become a Member</h1>
+          <p className="text-slate-200 font-medium drop-shadow-sm">Join our community and dive into a world of knowledge.</p>
         </div>
 
         <Card className="border-white/40 bg-white/70 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[2.5rem] overflow-hidden">
@@ -189,7 +197,7 @@ export default function SignupPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Name */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Full Name</label>
                   <div className="relative group">
                     <User className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.name ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
@@ -205,7 +213,7 @@ export default function SignupPage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Email Address</label>
                   <div className="relative group">
                     <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.email ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
@@ -222,7 +230,7 @@ export default function SignupPage() {
 
                 {/* Phone */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Phone Number</label>
                   <div className="relative group">
                     <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.phone ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
@@ -238,7 +246,7 @@ export default function SignupPage() {
 
                 {/* Password */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Password</label>
                   <div className="relative group">
                     <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.password ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
@@ -256,7 +264,7 @@ export default function SignupPage() {
 
               {/* Address */}
               <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Physical Address</label>
+                <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Physical Address</label>
                 <div className="relative group">
                   <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.address ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                   <Input
@@ -272,7 +280,7 @@ export default function SignupPage() {
 
               {/* Membership Date */}
               <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Membership Start Date</label>
+                <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Membership Start Date</label>
                 <div className="relative group">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
                   <Input
@@ -286,7 +294,7 @@ export default function SignupPage() {
               </div>
 
               <div className="pt-4 flex flex-col gap-6">
-                <Button 
+                <Button
                   disabled={loading || success}
                   className="h-16 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-lg font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.98] group overflow-hidden relative disabled:opacity-50 disabled:pointer-events-none"
                 >
@@ -319,7 +327,7 @@ export default function SignupPage() {
         </Card>
 
         {/* Footer info text */}
-        <p className="mt-10 text-center text-xs font-medium text-slate-400 px-10 leading-relaxed uppercase tracking-widest">
+        <p className="mt-10 text-center text-xs font-bold text-white/80 px-10 leading-relaxed uppercase tracking-widest drop-shadow-sm">
           By signing up, you agree to the Lumina Library Terms of Service and Privacy Policy. All your reading history is protected under our digital privacy guidelines.
         </p>
       </div>

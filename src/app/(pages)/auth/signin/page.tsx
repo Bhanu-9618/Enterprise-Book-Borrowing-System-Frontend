@@ -16,6 +16,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src/components/ui/card";
+import Image from "next/image";
 
 export default function SigninPage() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function SigninPage() {
 
     try {
       const response = await userService.login(formData);
-      
+
       if (response.code === 200) {
         // Update store
         setAuth({
@@ -57,7 +58,7 @@ export default function SigninPage() {
     } catch (err: unknown) {
       // Type-safe error handling
       const errorData = err as { code?: number; status?: number; message?: string };
-      
+
       if (errorData.code === 401 || errorData.status === 401) {
         setError("Invalid email or password. Please try again.");
       } else {
@@ -75,11 +76,17 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-4 py-20 relative overflow-hidden">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
-        <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-blue-200 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] bg-sky-200 rounded-full blur-[120px] animate-pulse delay-700" />
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-24 relative overflow-hidden">
+      {/* High-quality background image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/images/Lumina signup.jpg"
+          alt="Library Background"
+          fill
+          className="object-cover brightness-[0.6]"
+          priority
+        />
+        <div className="absolute inset-0 bg-blue-900/10 backdrop-blur-[2px]" />
       </div>
 
       <div className="w-full max-w-md z-10 relative">
@@ -90,12 +97,12 @@ export default function SigninPage() {
               <Sparkles className="absolute -right-1.5 -top-1.5 h-4 w-4 text-amber-300 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:-translate-y-0.5" />
             </span>
             <span className="text-3xl font-bold tracking-tight">
-              <span className="text-blue-600">Lumina</span>
-              <span className="text-slate-800">Library</span>
+              <span className="text-blue-500 font-extrabold drop-shadow-sm">Lumina</span>
+              <span className="text-white drop-shadow-sm">Library</span>
             </span>
           </Link>
-          <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Welcome Back</h1>
-          <p className="text-slate-500 font-medium">Sign in to access your library account.</p>
+          <h1 className="text-4xl font-black text-blue-500 mb-3 tracking-tight drop-shadow-sm">Welcome Back</h1>
+          <p className="text-blue-400 font-medium drop-shadow-sm">Sign in to access your library account.</p>
         </div>
 
         <Card className="border-white/40 bg-white/70 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[2.5rem] overflow-hidden">
@@ -123,7 +130,7 @@ export default function SigninPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                    className="pl-12 h-14 bg-white/70 border-blue-100 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/20 font-bold text-blue-900"
                   />
                 </div>
               </div>
@@ -140,13 +147,13 @@ export default function SigninPage() {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                    className="pl-12 h-14 bg-white/70 border-blue-100 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/20 font-bold text-blue-900"
                   />
                 </div>
               </div>
 
               <div className="pt-4 flex flex-col gap-6">
-                <Button 
+                <Button
                   disabled={loading}
                   className="h-16 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-lg font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-600/40 active:scale-[0.98] group overflow-hidden relative disabled:opacity-50 disabled:pointer-events-none"
                 >
@@ -176,7 +183,7 @@ export default function SigninPage() {
           </CardContent>
         </Card>
 
-        <p className="mt-10 text-center text-xs font-medium text-slate-400 px-10 leading-relaxed uppercase tracking-widest">
+        <p className="mt-10 text-center text-xs font-black text-blue-400 px-10 leading-relaxed uppercase tracking-widest drop-shadow-sm">
           Your reading history is protected under our digital privacy guidelines.
         </p>
       </div>
