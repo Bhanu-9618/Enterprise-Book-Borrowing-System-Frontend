@@ -97,12 +97,12 @@ export default function SigninPage() {
               <Sparkles className="absolute -right-1.5 -top-1.5 h-4 w-4 text-amber-300 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:-translate-y-0.5" />
             </span>
             <span className="text-3xl font-bold tracking-tight">
-              <span className="text-blue-500 font-extrabold drop-shadow-sm">Lumina</span>
+              <span className="text-blue-400 font-extrabold drop-shadow-sm">Lumina</span>
               <span className="text-white drop-shadow-sm">Library</span>
             </span>
           </Link>
-          <h1 className="text-4xl font-black text-blue-500 mb-3 tracking-tight drop-shadow-sm">Welcome Back</h1>
-          <p className="text-blue-400 font-medium drop-shadow-sm">Sign in to access your library account.</p>
+          <h1 className="text-4xl font-black text-white mb-3 tracking-tight drop-shadow-md">Welcome Back</h1>
+          <p className="text-slate-200 font-medium drop-shadow-sm">Sign in to access your library account.</p>
         </div>
 
         <Card className="border-white/40 bg-white/70 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[2.5rem] overflow-hidden">
@@ -120,7 +120,7 @@ export default function SigninPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
               <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Email Address</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
                   <Input
@@ -137,7 +137,7 @@ export default function SigninPage() {
 
               {/* Password */}
               <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
                   <Input
@@ -183,7 +183,7 @@ export default function SigninPage() {
           </CardContent>
         </Card>
 
-        <p className="mt-10 text-center text-xs font-black text-blue-400 px-10 leading-relaxed uppercase tracking-widest drop-shadow-sm">
+        <p className="mt-10 text-center text-xs font-bold text-white/80 px-10 leading-relaxed uppercase tracking-widest drop-shadow-sm">
           Your reading history is protected under our digital privacy guidelines.
         </p>
       </div>
