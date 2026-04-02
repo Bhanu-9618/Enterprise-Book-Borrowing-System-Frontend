@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/src/components/ui/button";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import Cookies from "js-cookie";
 import {
   BookOpen,
   Menu,
@@ -127,13 +128,23 @@ export default function Navbar() {
 
   // Redirect logged-in users away from public pages if they try to visit them manually ("by force")
   useEffect(() => {
-    if (hydrated && token) {
+    if (!hydrated) return;
+
+    const cookieToken = Cookies.get('token');
+    
+    // Safety: If cookie is gone but store has token, clear store to avoid loop
+    if (!cookieToken && token) {
+      clearAuth();
+      return;
+    }
+
+    if (cookieToken && token) {
       const publicPaths = ['/', '/auth/signin', '/auth/signup'];
       if (publicPaths.includes(pathname)) {
         router.replace(isAdmin ? "/staff" : "/users");
       }
     }
-  }, [hydrated, token, pathname, isAdmin, router]);
+  }, [hydrated, token, pathname, isAdmin, router, clearAuth]);
 
   const filteredSuggestions = searchQuery
     ? quickSearchSuggestions.filter((s) =>
