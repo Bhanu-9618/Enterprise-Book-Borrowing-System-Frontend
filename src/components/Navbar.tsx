@@ -125,6 +125,16 @@ export default function Navbar() {
     router.push("/auth/signin");
   };
 
+  // Redirect logged-in users away from public pages if they try to visit them manually ("by force")
+  useEffect(() => {
+    if (hydrated && token) {
+      const publicPaths = ['/', '/auth/signin', '/auth/signup'];
+      if (publicPaths.includes(pathname)) {
+        router.replace(isAdmin ? "/staff" : "/users");
+      }
+    }
+  }, [hydrated, token, pathname, isAdmin, router]);
+
   const filteredSuggestions = searchQuery
     ? quickSearchSuggestions.filter((s) =>
       s.toLowerCase().includes(searchQuery.toLowerCase())
