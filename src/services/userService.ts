@@ -116,7 +116,11 @@ export const userService = {
                 return response.data.data;
             }
             return null;
-        } catch (error) {
+        } catch (error: unknown) {
+            // Silently return null for 404 (common during real-time search)
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
             console.error(`Error searching user by ID ${id}:`, error);
             return null;
         }

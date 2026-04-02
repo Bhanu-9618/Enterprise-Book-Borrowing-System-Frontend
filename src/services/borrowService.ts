@@ -1,3 +1,4 @@
+import axios from 'axios';
 import api from '../lib/axios';
 
 export interface BorrowRecord {
@@ -35,9 +36,12 @@ export const borrowService = {
         return response.data.data;
       }
       return [];
-    } catch (error) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return [];
+      }
       console.error('Error fetching borrow history:', error);
-      throw error;
+      return [];
     }
   },
 
