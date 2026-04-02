@@ -132,7 +132,7 @@ function BorrowManagementContent() {
           borrowid: editingRecord.borrowid,
           status: formData.status
         });
-        if (response.code === 200) {
+        if (response.code === 200 || response.code === 201) {
           toast.success("Borrow record updated!");
           setTimeout(() => window.location.reload(), 1000);
         } else {
@@ -143,7 +143,7 @@ function BorrowManagementContent() {
           bookid: formData.bookid,
           userid: formData.userid
         });
-        if (response.code === 200) {
+        if (response.code === 200 || response.code === 201) {
           toast.success("New borrow record created!");
           setTimeout(() => window.location.reload(), 1000);
         } else {
