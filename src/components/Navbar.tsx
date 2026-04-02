@@ -69,7 +69,7 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, []);
 
-  const [scrolled, setScrolled] = useState(false);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -80,7 +80,7 @@ export default function Navbar() {
   const megaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => { /* No longer needed for background state */ };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -144,26 +144,14 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 w-full transition-all duration-500 ${scrolled
-          ? "bg-white/80 shadow-lg shadow-blue-500/[0.04] backdrop-blur-2xl"
-          : "bg-white/50 backdrop-blur-md"
-          }`}
+        className="sticky top-0 z-50 w-full bg-white border-b border-slate-100/80 shadow-sm transition-all duration-300"
       >
-        <div
-          className="absolute inset-x-0 top-0 h-[2.5px]"
-          style={{
-            background:
-              "linear-gradient(90deg, #2563eb 0%, #0ea5e9 30%, #06b6d4 60%, #3b82f6 100%)",
-            backgroundSize: "200% 100%",
-            animation: "gradientShift 4s ease infinite",
-          }}
-        />
 
         <div className="mx-auto flex h-16 max-w-full items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Dynamic logo routing: Sends logged-in users to their dashboard, guests to the landing page */}
           <Link href={!hydrated ? "/" : isAuth ? (isAdmin ? "/staff" : "/users") : "/"} className="group relative flex items-center gap-2.5">
             <span className="absolute -inset-2 rounded-2xl bg-blue-500/10 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100" />
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-sky-600 to-cyan-500 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:rotate-3">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:rotate-3">
               <BookOpen className="h-5 w-5 text-white drop-shadow" strokeWidth={2.2} />
               <Sparkles className="absolute -right-1.5 -top-1.5 h-3.5 w-3.5 text-amber-300 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:scale-110" />
             </span>
@@ -260,7 +248,7 @@ export default function Navbar() {
                     </div>
 
                     <Link href="/staff/borrow-management?status=REQUESTED">
-                      <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 px-6 text-sm font-bold text-white shadow-lg shadow-amber-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/40 active:scale-[0.98]">
+                      <Button className="relative group overflow-hidden rounded-full bg-amber-500 px-6 text-sm font-bold text-white shadow-lg shadow-amber-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/40 active:scale-[0.98]">
                         <span className="relative z-10 flex items-center gap-2">
                           Requested
                         </span>
@@ -281,7 +269,7 @@ export default function Navbar() {
                     </Link>
 
                     <Link href="/users/history">
-                      <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
+                      <Button className="relative group overflow-hidden rounded-full bg-blue-600 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
                         <span className="relative z-10 flex items-center gap-2">
                           My History
                         </span>
@@ -334,7 +322,7 @@ export default function Navbar() {
                 </Link>
 
                 <Link href="/auth/signup">
-                  <Button className="relative group overflow-hidden rounded-full bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
+                  <Button className="relative group overflow-hidden rounded-full bg-blue-600 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-600/40 active:scale-[0.98]">
                     <span className="relative z-10 flex items-center gap-2">
                       Join Now
                       <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -490,10 +478,10 @@ export default function Navbar() {
       />
 
       <div
-        className={`fixed right-0 top-0 z-40 flex h-full w-80 flex-col bg-white/[0.97] backdrop-blur-2xl shadow-2xl shadow-blue-500/10 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${mobileOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed right-0 top-0 z-40 flex h-full w-80 flex-col bg-white shadow-2xl shadow-blue-500/10 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${mobileOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
-        <div className="absolute inset-y-0 left-0 w-[2.5px] bg-gradient-to-b from-blue-500 via-sky-500 to-blue-400 opacity-70" />
+        <div className="absolute inset-y-0 left-0 w-[2.5px] bg-blue-500 opacity-70" />
 
         <div className="flex flex-col gap-1 overflow-y-auto px-5 pt-20 pb-8">
           {/* <button
@@ -535,7 +523,7 @@ export default function Navbar() {
             </Link>
           ))} */}
 
-          <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
+          <div className="my-6 h-px bg-gray-100" />
 
           {!hydrated ? (
             <div className="flex w-full items-center justify-center py-8">
@@ -585,7 +573,7 @@ export default function Navbar() {
                   <div className="h-2" />
                   
                   <Link href="/staff/borrow-management?status=REQUESTED" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 py-6 text-sm font-bold text-white shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.02] hover:shadow-amber-500/40">
+                    <Button className="w-full rounded-2xl bg-amber-500 py-6 text-sm font-bold text-white shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.02] hover:shadow-amber-500/40">
                       <span className="flex items-center justify-center gap-2">
                         Requested
                       </span>
@@ -605,7 +593,7 @@ export default function Navbar() {
                   </Link>
                   <div className="h-2" />
                   <Link href="/users/history" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
+                    <Button className="w-full rounded-2xl bg-blue-600 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
                       <span className="flex items-center justify-center gap-2">
                         My History
                       </span>
@@ -650,7 +638,7 @@ export default function Navbar() {
               </Link>
               <div className="h-3" />
               <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-500 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
+                <Button className="w-full rounded-2xl bg-blue-600 py-6 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] hover:shadow-blue-600/40">
                   <span className="flex items-center justify-center gap-2">
                     Join Now
                     <ArrowRight className="h-4 w-4" />
