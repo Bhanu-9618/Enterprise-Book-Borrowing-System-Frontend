@@ -11,19 +11,19 @@ import {
 
 const carouselItems = [
   {
-    image: "/images/hero-1.png",
+    image: "/images/Lumina 2.jpg",
     title: "Unlock a World of Knowledge",
     description: "Explore thousands of books ranging from timeless classics to the latest bestsellers. Your next great adventure starts here.",
     color: "from-blue-400 via-sky-400 to-cyan-400",
   },
   {
-    image: "/images/hero-2.png",
+    image: "/images/Lumina 1.jpg",
     title: "Borrowing Made Effortless",
     description: "No more long queues. Request your favorite books online and pick them up at your convenience. Simple, fast, and digital.",
     color: "from-blue-500 via-blue-400 to-sky-400",
   },
   {
-    image: "/images/hero-3.png",
+    image: "/images/Lumina 3.jpg",
     title: "Join Our Community of Readers",
     description: "Become a member today to track your reading history, manage borrowings, and stay updated on new arrivals.",
     color: "from-blue-600 via-blue-500 to-blue-400",
