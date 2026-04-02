@@ -79,7 +79,12 @@ export const userService = {
         try {
             const response = await api.post('/auth/login', loginData);
             return response.data;
-        } catch (error) {
+        } catch (error: unknown) {
+            // Silently throw for 401 (Invalid login) - handled by component
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                throw error.response.data || { code: 401, message: 'Invalid email or password.' };
+            }
+            
             console.error('Login error:', error);
             if (axios.isAxiosError(error)) {
                 throw error.response?.data || { message: 'Login failed. Please check your credentials.' };
