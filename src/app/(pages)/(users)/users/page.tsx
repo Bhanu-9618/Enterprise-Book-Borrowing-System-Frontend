@@ -195,18 +195,26 @@ export default function UserDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="mx-auto px-4 py-8" style={{ maxWidth: "1800px" }}>
+    <div className="min-h-screen relative overflow-hidden bg-slate-50">
+      {/* Background Image with Overlay */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+        style={{ backgroundImage: "url('/images/Lumina 3.jpg')" }}
+      />
+      <div className="fixed inset-0 z-0 bg-black/5 transition-opacity duration-700" />
+      <div className="fixed inset-0 z-0 bg-white/20 backdrop-blur-[2px]" />
+
+      <main className="relative z-10 mx-auto px-4 py-8" style={{ maxWidth: "1800px" }}>
         {/* Welcome Greeting */}
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5 text-amber-400" />
-            <span className="text-sm font-bold text-amber-600 uppercase tracking-widest">Dashboard</span>
+            <Sparkles className="h-5 w-5 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+            <span className="text-sm font-black text-amber-600 uppercase tracking-widest drop-shadow-sm">Dashboard</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-1">
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2 drop-shadow-[0_2px_10px_rgba(255,255,255,1)]">
             Welcome Back, {hydrated && name ? name : "Member"}!
           </h1>
-          <p className="text-slate-500 font-medium">Browse our catalog and borrow your next favorite book.</p>
+          <p className="text-slate-800 font-bold text-lg drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)]">Browse our catalog and borrow your next favorite book.</p>
         </div>
 
         {/* Search Section */}
@@ -241,11 +249,11 @@ export default function UserDashboardPage() {
         {(searchTerm.trim().length > 0 || searchById.trim().length > 0) ? (
           <div className="space-y-8">
             <div className="relative text-center">
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
-              <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl font-serif font-black text-slate-800 tracking-tight flex items-center justify-center gap-4">
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
+              <span className="relative z-10 px-8 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl font-serif font-black text-slate-900 tracking-tight flex items-center justify-center gap-4 py-2 max-w-max drop-shadow-sm">
                 Search Results
                 {isSearching && (
-                  <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 )}
               </span>
             </div>
@@ -265,7 +273,7 @@ export default function UserDashboardPage() {
                   {searchResults.books.map((book) => (
                     <Card
                       key={book.id}
-                      className="group relative bg-white border-slate-100/80 rounded-xl shadow-sm shadow-slate-200/40 hover:shadow-md hover:shadow-slate-200/60 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col"
+                      className="group relative bg-white/80 border-white/60 rounded-xl shadow-lg shadow-slate-900/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden flex flex-col backdrop-blur-2xl"
                     >
                       <CardContent className="p-3 flex-1 flex flex-col">
                         <div className="flex items-center justify-between mb-2">
@@ -282,7 +290,7 @@ export default function UserDashboardPage() {
                           </span>
                         </div>
                         <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
-                        <p className="text-[10px] font-medium text-slate-400 mb-2 truncate">{book.author}</p>
+                        <p className="text-[10px] font-bold text-slate-500 mb-2 truncate">{book.author}</p>
                         <div className="space-y-1 mb-3 mt-auto">
                           <div className="flex items-center gap-1.5 text-[10px]">
                             <Building2 className="h-3 w-3 text-slate-300 shrink-0" />
@@ -351,8 +359,8 @@ export default function UserDashboardPage() {
                 <div key={category} className="space-y-6">
                   {/* Centered Category Title */}
                   <div className="relative text-center">
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
-                    <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl sm:text-3xl font-serif font-black text-slate-800 tracking-tight">
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
+                    <span className="relative z-10 px-10 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight py-2.5 max-w-max drop-shadow-sm uppercase">
                       {formatCategoryName(category)}
                     </span>
                   </div>
@@ -362,7 +370,7 @@ export default function UserDashboardPage() {
                     {paginatedBooks.map((book) => (
                       <Card
                         key={book.id}
-                        className="group relative bg-white border-slate-100/80 rounded-xl shadow-sm shadow-slate-200/40 hover:shadow-md hover:shadow-slate-200/60 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden flex flex-col"
+                        className="group relative bg-white/80 border-white/60 rounded-xl shadow-lg shadow-slate-900/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden flex flex-col backdrop-blur-2xl"
                       >
                         <CardContent className="p-3 flex-1 flex flex-col">
                           {/* Top row */}
@@ -390,7 +398,7 @@ export default function UserDashboardPage() {
                           <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">
                             {book.title}
                           </h3>
-                          <p className="text-[10px] font-medium text-slate-400 mb-2 truncate">{book.author}</p>
+                          <p className="text-[10px] font-bold text-slate-500 mb-2 truncate">{book.author}</p>
 
                           {/* Details */}
                           <div className="space-y-1 mb-3 mt-auto">

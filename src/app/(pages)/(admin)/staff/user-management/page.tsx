@@ -270,17 +270,17 @@ export default function UserManagementPage() {
 
         {/* Users List Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
-          <div className="min-w-[1000px]">
+          <div className="min-w-[1200px]">
             {/* Table Header */}
             <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User ID</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Address</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Member Since</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Phone</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Address</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Member Since</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Role</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
 
             {/* Table Body */}
@@ -304,7 +304,7 @@ export default function UserManagementPage() {
                       }`}
                   >
                     {/* ID */}
-                    <span className="text-xs font-black text-slate-300">#{user.id.toString().padStart(3, "0")}</span>
+                    <span className="text-xs font-black text-slate-900">#{user.id.toString().padStart(3, "0")}</span>
 
                     {/* Name */}
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -314,20 +314,20 @@ export default function UserManagementPage() {
                         }`}>
                         {user.name.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-sm font-bold text-slate-800 truncate">{user.name}</span>
+                      <span className="text-sm font-black text-slate-900 truncate">{user.name}</span>
                     </div>
 
                     {/* Email */}
-                    <span className="text-xs font-medium text-slate-500 truncate">{user.email}</span>
+                    <span className="text-xs font-bold text-slate-700 truncate">{user.email}</span>
 
                     {/* Phone */}
-                    <span className="text-xs font-medium text-slate-500 font-mono">{user.phone}</span>
+                    <span className="text-xs font-bold text-slate-700 font-mono">{user.phone}</span>
 
                     {/* Address */}
-                    <span className="text-xs font-medium text-slate-500 truncate">{user.address}</span>
+                    <span className="text-xs font-bold text-slate-700 truncate">{user.address}</span>
 
                     {/* Membership Date */}
-                    <span className="text-xs font-medium text-slate-400">{user.membershipdate}</span>
+                    <span className="text-xs font-bold text-slate-600">{user.membershipdate}</span>
 
                     {/* Role */}
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${user.role === "ADMIN"

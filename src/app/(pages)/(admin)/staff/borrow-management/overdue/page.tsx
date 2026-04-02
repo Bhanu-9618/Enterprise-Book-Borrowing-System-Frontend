@@ -140,14 +140,14 @@ function OverdueManagementContent() {
 
         {/* Overdue Records Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
-          <div className="min-w-[1000px]">
+          <div className="min-w-[1200px]">
             {/* Table Header */}
-            <div className="grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-4 bg-slate-50/80 border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow ID</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User ID</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fine Amount</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Status</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
+            <div className="grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 bg-slate-50/80 border-b border-slate-100">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow ID</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fine Amount</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Payment Status</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
 
             {/* Table Body */}
@@ -172,18 +172,18 @@ function OverdueManagementContent() {
                         }`}
                     >
                       {/* ID */}
-                      <span className="text-xs font-black text-slate-300">#{rec.borrowid.toString().padStart(3, "0")}</span>
+                      <span className="text-xs font-black text-slate-900">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
                       {/* User ID */}
                       <div className="flex items-center gap-1.5">
-                        <User className="h-4 w-4 text-slate-300 shrink-0" />
-                        <span className="text-sm font-bold text-slate-700">User #{rec.userid}</span>
+                        <User className="h-4 w-4 text-slate-400 shrink-0" />
+                        <span className="text-sm font-black text-slate-800">User #{rec.userid}</span>
                       </div>
 
                       {/* Fine Amount */}
                       <div className="flex items-center gap-1.5">
                         <Coins className="h-4 w-4 text-orange-500 shrink-0" />
-                        <span className="text-sm font-bold text-slate-900">Rs. {rec.fineAmount.toFixed(2)}</span>
+                        <span className="text-sm font-black text-slate-900">Rs. {rec.fineAmount.toFixed(2)}</span>
                       </div>
 
                       {/* Payment Status */}

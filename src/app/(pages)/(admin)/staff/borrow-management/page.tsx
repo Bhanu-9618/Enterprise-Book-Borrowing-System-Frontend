@@ -231,17 +231,17 @@ function BorrowManagementContent() {
 
         {/* Borrow Records Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
-          <div className="min-w-[1000px]">
+          <div className="min-w-[1200px]">
             {/* Table Header */}
             <div className="grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3 bg-slate-50/80 border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow ID</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Borrow Date</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Date</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Return Date</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Book ID</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User ID</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow ID</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow Date</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Due Date</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Return Date</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Book ID</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
 
             {/* Table Body */}
@@ -268,22 +268,22 @@ function BorrowManagementContent() {
                         }`}
                     >
                       {/* ID */}
-                      <span className="text-xs font-black text-slate-300">#{rec.borrowid.toString().padStart(3, "0")}</span>
+                      <span className="text-xs font-black text-slate-900">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
                       {/* Borrow Date */}
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3 text-slate-300 shrink-0" />
-                        <span className="text-xs font-medium text-slate-600">{rec.borrowdate || "—"}</span>
+                        <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
+                        <span className="text-xs font-bold text-slate-700">{rec.borrowdate || "—"}</span>
                       </div>
 
                       {/* Due Date */}
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3 text-slate-300 shrink-0" />
-                        <span className="text-xs font-medium text-slate-600">{rec.dueDate || "—"}</span>
+                        <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
+                        <span className="text-xs font-bold text-slate-700">{rec.dueDate || "—"}</span>
                       </div>
 
                       {/* Return Date */}
-                      <span className="text-xs font-medium text-slate-500">
+                      <span className="text-xs font-bold text-slate-600">
                         {rec.returnDate || (
                           <span className="text-slate-300 italic">—</span>
                         )}
@@ -297,14 +297,14 @@ function BorrowManagementContent() {
 
                       {/* Book ID */}
                       <div className="flex items-center gap-1.5">
-                        <BookOpen className="h-3 w-3 text-slate-300 shrink-0" />
-                        <span className="text-xs font-bold text-slate-600">#{rec.bookid}</span>
+                        <BookOpen className="h-3 w-3 text-slate-400 shrink-0" />
+                        <span className="text-xs font-black text-slate-800">#{rec.bookid}</span>
                       </div>
 
                       {/* User ID */}
                       <div className="flex items-center gap-1.5">
-                        <User className="h-3 w-3 text-slate-300 shrink-0" />
-                        <span className="text-xs font-bold text-slate-600">#{rec.userid}</span>
+                        <User className="h-3 w-3 text-slate-400 shrink-0" />
+                        <span className="text-xs font-black text-slate-800">#{rec.userid}</span>
                       </div>
 
                       {/* Actions */}
