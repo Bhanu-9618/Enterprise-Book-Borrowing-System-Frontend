@@ -23,7 +23,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/src
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -35,25 +36,93 @@ export default function SignupPage() {
     password: ""
   });
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Full name is required";
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = "Name is too short";
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+      newErrors.email = "Email address is required";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (!formData.phone) {
+      newErrors.phone = "Phone number is required";
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Phone number must be exactly 10 digits (e.g. 0771234567)";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
+
+    // Address validation
+    if (!formData.address.trim()) {
+      newErrors.address = "Physical address is required";
+    }
+
+    setFieldErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setGeneralError(null);
+    setFieldErrors({});
+
+    // Client-side validation
+    if (!validate()) {
+      setGeneralError("Please correct the errors before submitting.");
+      return;
+    }
+
     setLoading(true);
-    setError(null);
 
     try {
-      const result = await userService.signup(formData);
-      
-      // Assuming success if the request finishes without catch
+      await userService.signup(formData);
       setSuccess(true);
       
-      // Auto-redirect to signin after 2 seconds
       setTimeout(() => {
         router.push("/auth/signin");
       }, 2000);
 
     } catch (err: unknown) {
-      const errorMessage = (err as { message?: string })?.message || "Signup failed. Please check your details.";
-      setError(errorMessage);
+      console.error("Signup error details:", err);
+      
+      const errorData = err as { 
+        errors?: Record<string, string>; 
+        message?: string 
+      };
+
+      // Handle structured errors from backend (e.g. Spring Validation)
+      if (errorData.errors && typeof errorData.errors === 'object') {
+        setFieldErrors(errorData.errors);
+        setGeneralError("Validation failed. Please check the specific fields.");
+      } else if (errorData.message) {
+        // Handle specific message but check if it's the generic one
+        if (errorData.message.toLowerCase().includes("validation failed")) {
+          setGeneralError("Registration failed due to invalid data. Please check all fields.");
+        } else {
+          setGeneralError(errorData.message);
+        }
+      } else {
+        setGeneralError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -62,6 +131,14 @@ export default function SignupPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   return (
@@ -94,9 +171,9 @@ export default function SignupPage() {
                 Welcome to Lumina! 🎉 <br />
                 <span className="font-medium opacity-80">Redirecting you to sign in...</span>
               </div>
-            ) : error ? (
+            ) : generalError ? (
               <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold text-center animate-in shake duration-500">
-                {error}
+                {generalError}
               </div>
             ) : (
               <>
@@ -113,66 +190,66 @@ export default function SignupPage() {
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                   <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
+                    <User className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.name ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
                       name="name"
                       placeholder="e.g. John Doe"
                       value={formData.name}
                       onChange={handleChange}
-                      required
-                      className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                      className={`pl-12 h-14 bg-white/50 rounded-2xl transition-all font-medium ${fieldErrors.name ? 'border-rose-300 focus:ring-rose-500/5 focus:border-rose-500/20 shadow-[0_0_0_1px_rgba(225,29,72,0.1)]' : 'border-slate-100/80 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20'}`}
                     />
                   </div>
+                  {fieldErrors.name && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.name}</p>}
                 </div>
 
                 {/* Email */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
+                    <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.email ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
                       name="email"
                       type="email"
                       placeholder="user@example.com"
                       value={formData.email}
                       onChange={handleChange}
-                      required
-                      className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                      className={`pl-12 h-14 bg-white/50 rounded-2xl transition-all font-medium ${fieldErrors.email ? 'border-rose-300 focus:ring-rose-500/5 focus:border-rose-500/20 shadow-[0_0_0_1px_rgba(225,29,72,0.1)]' : 'border-slate-100/80 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20'}`}
                     />
                   </div>
+                  {fieldErrors.email && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.email}</p>}
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
                   <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
+                    <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.phone ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
                       name="phone"
-                      placeholder="5680545291"
+                      placeholder="e.g. 0771234567"
                       value={formData.phone}
                       onChange={handleChange}
-                      required
-                      className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                      className={`pl-12 h-14 bg-white/50 rounded-2xl transition-all font-medium ${fieldErrors.phone ? 'border-rose-300 focus:ring-rose-500/5 focus:border-rose-500/20 shadow-[0_0_0_1px_rgba(225,29,72,0.1)]' : 'border-slate-100/80 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20'}`}
                     />
                   </div>
+                  {fieldErrors.phone && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.phone}</p>}
                 </div>
 
                 {/* Password */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
+                    <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.password ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                     <Input
                       name="password"
                       type="password"
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleChange}
-                      required
-                      className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                      className={`pl-12 h-14 bg-white/50 rounded-2xl transition-all font-medium ${fieldErrors.password ? 'border-rose-300 focus:ring-rose-500/5 focus:border-rose-500/20 shadow-[0_0_0_1px_rgba(225,29,72,0.1)]' : 'border-slate-100/80 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20'}`}
                     />
                   </div>
+                  {fieldErrors.password && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.password}</p>}
                 </div>
               </div>
 
@@ -180,16 +257,16 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Physical Address</label>
                 <div className="relative group">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
+                  <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${fieldErrors.address ? 'text-rose-400' : 'text-slate-300 group-focus-within:text-blue-500'}`} />
                   <Input
                     name="address"
                     placeholder="e.g. 123 Library Lane"
                     value={formData.address}
                     onChange={handleChange}
-                    required
-                    className="pl-12 h-14 bg-white/50 border-slate-100/80 rounded-2xl transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 font-medium"
+                    className={`pl-12 h-14 bg-white/50 rounded-2xl transition-all font-medium ${fieldErrors.address ? 'border-rose-300 focus:ring-rose-500/5 focus:border-rose-500/20 shadow-[0_0_0_1px_rgba(225,29,72,0.1)]' : 'border-slate-100/80 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20'}`}
                   />
                 </div>
+                {fieldErrors.address && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.address}</p>}
               </div>
 
               {/* Membership Date */}
@@ -248,3 +325,4 @@ export default function SignupPage() {
     </div>
   );
 }
+
