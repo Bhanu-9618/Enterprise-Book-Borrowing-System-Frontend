@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -24,31 +24,11 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
+import { useInView } from "react-intersection-observer";
+import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
 // ---------- Constants ----------
-const BOOK_CATEGORIES = [
-  "FICTION",
-  "NON_FICTION",
-  "SCIENCE",
-  "HISTORY",
-  "TECHNOLOGY",
-  "BUSINESS",
-  "BIOGRAPHY",
-  "CHILDREN",
-  "MYSTERY",
-  "FANTASY",
-  "LITERATURE",
-  "OTHERS",
-];
 
-const ITEMS_PER_PAGE = 16;
-
-const formatCategoryName = (cat: string) => {
-  return cat
-    .split("_")
-    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-    .join(" ");
-};
 
 const emptyFormData = {
   title: "",
@@ -61,27 +41,10 @@ const emptyFormData = {
 };
 
 export default function AdminBookManagementPage() {
-  const [categoryData, setCategoryData] = useState<Record<string, PaginatedBooksResponse>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [searchById, setSearchById] = useState("");
   const [searchResults, setSearchResults] = useState<PaginatedBooksResponse | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  
-  const [showModal, setShowModal] = useState(false);
-  const [editingBook, setEditingBook] = useState<Book | null>(null);
-  const [formData, setFormData] = useState(emptyFormData);
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
-
-  const fetchCategoryData = async (cat: string, pageIndex: number) => {
-    try {
-      const data = await bookService.getBooksByCategory(cat, pageIndex, ITEMS_PER_PAGE);
-      if (data) setCategoryData((prev) => ({ ...prev, [cat]: data }));
-    } catch (err) { console.error(err); }
-  };
-
-  useEffect(() => {
-    BOOK_CATEGORIES.forEach((cat) => fetchCategoryData(cat, 0));
-  }, []);
 
   useEffect(() => {
     const handler = setTimeout(async () => {
@@ -122,21 +85,16 @@ export default function AdminBookManagementPage() {
     setIsSearching(false);
   };
 
-  const updateCategoryPage = (cat: string, page: number) => fetchCategoryData(cat, page - 1);
+  const [showModal, setShowModal] = useState(false);
+  const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [formData, setFormData] = useState(emptyFormData);
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
-  const booksByCategory = useMemo(() => {
-    const grouped = {} as Record<string, { books: Book[]; totalPages: number; pageIndex: number }>;
-    BOOK_CATEGORIES.forEach((cat) => {
-      if (categoryData[cat]) {
-        grouped[cat] = {
-          books: [...categoryData[cat].books],
-          totalPages: categoryData[cat].totalPages,
-          pageIndex: categoryData[cat].currentPage,
-        };
-      }
-    });
-    return { grouped, activeCategories: Object.keys(grouped).filter(cat => grouped[cat].books.length > 0) };
-  }, [categoryData]);
+  const handleEdit = (book: Book) => {
+    setEditingBook(book);
+    setFormData(book);
+    setShowModal(true);
+  };
 
   const handleSave = async () => {
     try {
@@ -173,7 +131,7 @@ export default function AdminBookManagementPage() {
     }
   };
 
-  const handleDelete = async (id: number, category: string) => {
+  const handleDelete = async (id: number) => {
     try {
       const response = await bookService.deleteBook(id);
       if (response.code === 200 || response.code === 201) {
@@ -204,7 +162,7 @@ export default function AdminBookManagementPage() {
           <p className="text-[10px] font-bold">Delete book?</p>
           <div className="flex gap-2 w-full justify-center">
             <Button onClick={() => setDeleteConfirm(null)} variant="outline" className="rounded-lg px-3 h-7 text-[10px]">No</Button>
-            <Button onClick={() => handleDelete(book.id, book.category)} className="bg-rose-500 hover:bg-rose-600 text-white rounded-lg px-3 h-7 text-[10px]">Yes</Button>
+            <Button onClick={() => handleDelete(book.id)} className="bg-rose-500 hover:bg-rose-600 text-white rounded-lg px-3 h-7 text-[10px]">Yes</Button>
           </div>
         </div>
       )}
@@ -223,7 +181,7 @@ export default function AdminBookManagementPage() {
            <div className="flex items-center gap-1.5 text-[10px]"><Copy className="h-3 w-3 opacity-50 shrink-0" /><span>{book.availableCopies} copies</span></div>
         </div>
         <div className="flex items-center gap-2 pt-2 border-t border-slate-50 mt-1">
-          <button onClick={() => { setEditingBook(book); setFormData(book); setShowModal(true); }} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+          <button onClick={() => handleEdit(book)} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
             <Edit3 className="h-3 w-3" /> Edit
           </button>
           <button onClick={() => setDeleteConfirm(book.id)} className="h-8 w-8 rounded-lg flex items-center justify-center text-rose-400 hover:bg-rose-50 transition-colors">
@@ -290,29 +248,13 @@ export default function AdminBookManagementPage() {
           </div>
         ) : (
           <div className="space-y-16">
-            {booksByCategory.activeCategories.map((category) => {
-              const catData = booksByCategory.grouped[category];
-              return (
-                <div key={category} className="space-y-6">
-                  <div className="relative text-center">
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
-                    <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl sm:text-3xl font-serif font-black text-slate-800 tracking-tight uppercase">
-                      {formatCategoryName(category)}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                    {catData.books.map((book) => <BookCard key={book.id} book={book} />)}
-                  </div>
-                  {catData.totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 mt-4">
-                      <button onClick={() => updateCategoryPage(category, catData.pageIndex)} disabled={catData.pageIndex === 0} className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 disabled:opacity-30"><ChevronLeft className="h-3 w-3" /></button>
-                      <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wide">Page {catData.pageIndex + 1} of {catData.totalPages}</span>
-                      <button onClick={() => updateCategoryPage(category, catData.pageIndex + 2)} disabled={catData.pageIndex + 1 === catData.totalPages} className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 disabled:opacity-30"><ChevronRight className="h-3 w-3" /></button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {BOOK_CATEGORIES.map((category) => (
+              <AdminCategorySection
+                key={category}
+                category={category}
+                BookCard={BookCard}
+              />
+            ))}
           </div>
         )}
 
@@ -341,6 +283,86 @@ export default function AdminBookManagementPage() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+// ========== SUB-COMPONENT: ADMIN CATEGORY SECTION ==========
+function AdminCategorySection({ 
+  category, 
+  BookCard 
+}: { 
+  category: string, 
+  BookCard: React.FC<{ book: Book }> 
+}) {
+  const [data, setData] = useState<PaginatedBooksResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    rootMargin: '200px 0px',
+  });
+
+  const fetchData = useCallback(async (pageIndex: number) => {
+    setIsLoading(true);
+    try {
+      const res = await bookService.getBooksByCategory(category, pageIndex, ITEMS_PER_PAGE);
+      setData(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [category]);
+
+  useEffect(() => {
+    if (inView && !data) {
+      fetchData(0);
+    }
+  }, [inView, data, fetchData]);
+
+  if (!inView && !data) return <div ref={ref} className="h-40" />;
+  if (data && data.books.length === 0 && !isLoading) return null;
+
+  const currentPage = (data?.currentPage || 0) + 1;
+  const totalPages = data?.totalPages || 1;
+
+  return (
+    <div ref={ref} className="space-y-6 min-h-[300px]">
+      <div className="relative text-center">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
+        <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl sm:text-3xl font-serif font-black text-slate-800 tracking-tight uppercase">
+          {formatCategoryName(category)}
+          {isLoading && (
+            <span className="ml-4 inline-block h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          )}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+        {data?.books.map((book) => <BookCard key={book.id} book={book} />)}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <button
+            onClick={() => fetchData(currentPage - 2)}
+            disabled={currentPage === 1 || isLoading}
+            className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 disabled:opacity-30"
+          >
+            <ChevronLeft className="h-3 w-3" />
+          </button>
+          <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wide">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => fetchData(currentPage)}
+            disabled={currentPage === totalPages || isLoading}
+            className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 disabled:opacity-30"
+          >
+            <ChevronRight className="h-3 w-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
