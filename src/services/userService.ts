@@ -39,6 +39,13 @@ export interface UserData {
     isActive: boolean;
 }
 
+export interface PaginatedUsersResponse {
+    totalItems: number;
+    users: UserData[];
+    totalPages: number;
+    currentPage: number;
+}
+
 export const userService = {
     /**
      * Fetches the total count of registered users.
@@ -94,19 +101,36 @@ export const userService = {
     },
 
     /**
-     * Fetches all registered users.
-     * URL: http://localhost:8080/user/all
+     * Fetches paginated registered users.
+     * URL: http://localhost:8080/user/all?page=0&size=10
      */
-    getUsers: async (): Promise<UserData[]> => {
+    getUsers: async (page: number = 0, size: number = 10): Promise<PaginatedUsersResponse | null> => {
         try {
-            const response = await api.get('/user/all');
-            if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+            const response = await api.get('/user/all', { params: { page, size } });
+            if (response.data?.code === 200 && response.data.data) {
                 return response.data.data;
             }
-            return [];
+            return null;
         } catch (error) {
             console.error('Error fetching users:', error);
-            return [];
+            return null;
+        }
+    },
+
+    /**
+     * Searches for users by term (name or ID).
+     * URL: http://localhost:8080/user/search?term=john&page=0&size=10
+     */
+    searchUsers: async (term: string, page: number = 0, size: number = 10): Promise<PaginatedUsersResponse | null> => {
+        try {
+            const response = await api.get('/user/search', { params: { term, page, size } });
+            if (response.data?.code === 200 && response.data.data) {
+                return response.data.data;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error searching users:', error);
+            return null;
         }
     },
 

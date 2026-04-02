@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { borrowService, BorrowRecord } from "@/src/services/borrowService";
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 
-const ITEMS_PER_PAGE = 8;
+import { ITEMS_PER_PAGE } from "@/src/lib/constants";
 
 const statusConfig: Record<string, { bg: string; text: string; icon: React.ElementType }> = {
   REQUESTED: { bg: "bg-amber-100/90", text: "text-amber-800", icon: Clock },
@@ -32,42 +32,43 @@ const getStatus = (s: string) =>
 
 // ========== COMPONENT ==========
 function HistoryContent() {
-  const [currentPage, setCurrentPage] = useState(1);
   const [records, setRecords] = useState<BorrowRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const { id: userId } = useAuthStore();
 
-  useEffect(() => {
-    let isMounted = true;
-    const fetchHistory = async () => {
-      if (!userId) {
-        setIsLoading(false);
-        return;
+  const fetchHistory = useCallback(async (page: number = 0) => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await borrowService.getBorrowHistoryByUserId(userId, page, ITEMS_PER_PAGE);
+      if (response) {
+        setRecords(response.history || []);
+        setTotalPages(response.totalPages || 1);
+        setTotalItems(response.totalItems || 0);
+        setCurrentPage((response.currentPage ?? 0) + 1);
+      } else {
+        setRecords([]);
+        setTotalPages(1);
+        setTotalItems(0);
       }
-      try {
-        const data = await borrowService.getBorrowHistoryByUserId(userId);
-        if (isMounted) {
-          setRecords(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch history:", error);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-    fetchHistory();
-    return () => { isMounted = false; };
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId]);
 
-  // ----- Filtering -----
-  const filteredRecords = records;
+  useEffect(() => {
+    fetchHistory(0);
+  }, [fetchHistory]);
 
-  // ----- Pagination -----
-  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
-  const paginatedRecords = filteredRecords.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
@@ -116,7 +117,7 @@ function HistoryContent() {
               <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 shadow-blue-500/20 shadow-lg"></div>
               <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Retrieving history...</h3>
             </div>
-          ) : paginatedRecords.length === 0 ? (
+          ) : records.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <ArrowRightLeft className="h-16 w-16 text-slate-200 mb-4 opacity-50" />
               <h3 className="text-lg font-black text-slate-400 mb-1 leading-none">No history found</h3>
@@ -124,14 +125,14 @@ function HistoryContent() {
             </div>
           ) : (
             <div>
-              {paginatedRecords.map((rec, index) => {
+              {records.map((rec, index) => {
                 const st = getStatus(rec.status);
                 const StatusIcon = st.icon;
                 return (
                   <div
                     key={rec.borrowid}
                     className={`group grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-6 items-center hover:bg-white/40 transition-all duration-300 ${
-                      index !== paginatedRecords.length - 1 ? "border-b border-white/20" : ""
+                      index !== records.length - 1 ? "border-b border-white/20" : ""
                     }`}
                   >
                     {/* Borrow ID */}
@@ -174,32 +175,22 @@ function HistoryContent() {
           </div>
         </div>
 
-        {/* Pagination (Match Admin style) */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-12">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => fetchHistory(currentPage - 2)}
+              disabled={currentPage === 1 || isLoading}
               className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/60 border border-white/60 text-slate-500 hover:text-slate-900 hover:bg-white disabled:opacity-30 transition-all backdrop-blur-md shadow-lg shadow-slate-900/5 overflow-hidden"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-10 w-10 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
-                  currentPage === page
-                    ? "bg-slate-900 text-white shadow-xl shadow-slate-900/20"
-                    : "bg-white/60 border border-white/60 text-slate-500 hover:text-slate-900 hover:bg-white backdrop-blur-md"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest px-6 drop-shadow-sm">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => fetchHistory(currentPage)}
+              disabled={currentPage === totalPages || isLoading}
               className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/60 border border-white/60 text-slate-500 hover:text-slate-900 hover:bg-white disabled:opacity-30 transition-all backdrop-blur-md shadow-lg shadow-slate-900/5 overflow-hidden"
             >
               <ChevronRight className="h-5 w-5" />

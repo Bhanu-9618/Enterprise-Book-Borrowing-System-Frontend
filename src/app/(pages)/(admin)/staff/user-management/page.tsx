@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   Users,
@@ -23,10 +23,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { userService, UserData } from "@/src/services/userService";
+import { userService, UserData, PaginatedUsersResponse } from "@/src/services/userService";
 import { useAuthStore } from "@/src/store/useAuthStore";
 
-const ITEMS_PER_PAGE = 8;
+import { ITEMS_PER_PAGE } from "@/src/lib/constants";
 
 const emptyUser: Omit<UserData, "id"> = {
   name: "",
@@ -52,78 +52,43 @@ export default function UserManagementPage() {
   const [statusToggleConfirm, setStatusToggleConfirm] = useState<number | null>(null);
   const authId = useAuthStore((state) => state.id);
 
-  const fetchUsers = async () => {
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const fetchUsers = useCallback(async (page: number = 0) => {
     setLoading(true);
-    const data = await userService.getUsers();
-    setUsers(data);
-    setLoading(false);
-  };
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Full name is required";
+    let response: PaginatedUsersResponse | null;
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+    if (searchTerm.trim()) {
+      response = await userService.searchUsers(searchTerm.trim(), page, ITEMS_PER_PAGE);
+    } else {
+      response = await userService.getUsers(page, ITEMS_PER_PAGE);
     }
 
-    const phoneRegex = /^\d{10}$/;
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Phone must be exactly 10 digits";
+    if (response) {
+      setUsers(response.users);
+      setTotalPages(response.totalPages);
+      setTotalItems(response.totalItems);
+      setCurrentPage(response.currentPage + 1);
+    } else {
+      setUsers([]);
+      setTotalPages(1);
+      setTotalItems(0);
     }
-
-    if (!formData.address.trim()) newErrors.address = "Address is required";
-
-    if (!editingUser) {
-      if (!formData.password.trim()) {
-        newErrors.password = "Password is required";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters";
-      }
-    }
-
-    setFieldErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  React.useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // Server-side ID search logic with debounce
-  React.useEffect(() => {
-    const handler = setTimeout(async () => {
-      if (!searchTerm.trim()) {
-        fetchUsers();
-        return;
-      }
-
-      setLoading(true);
-      const singleUser = await userService.getUserById(searchTerm.trim());
-      setUsers(singleUser ? [singleUser] : []);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(handler);
+    setLoading(false);
   }, [searchTerm]);
 
-  // ----- Filtering -----
-  const filteredUsers = users;
+  useEffect(() => {
+    fetchUsers(0);
+  }, [fetchUsers]);
 
-
-  // ----- Pagination -----
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  // ----- Handlers -----
+  // Search logic with debounce
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchUsers(0);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm, fetchUsers]);
   const openAddModal = () => {
     setEditingUser(null);
     setFormData(emptyUser);
@@ -147,8 +112,23 @@ export default function UserManagementPage() {
     setShowModal(true);
   };
 
+
   const handleSave = async () => {
-    if (!validate()) {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = "Full name is required";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!emailRegex.test(formData.email)) newErrors.email = "Invalid email format";
+    const phoneRegex = /^\d{10}$/;
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    else if (!phoneRegex.test(formData.phone)) newErrors.phone = "Phone must be exactly 10 digits";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+    if (!editingUser) {
+      if (!formData.password.trim()) newErrors.password = "Password is required";
+      else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    }
+    setFieldErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
       toast.error("Please correct the highlighted errors.");
       return;
     }
@@ -241,7 +221,7 @@ export default function UserManagementPage() {
               <span className="text-sm font-bold text-violet-600 uppercase tracking-widest">System Users</span>
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">User Management</h1>
-            <p className="text-slate-500 font-medium mt-1">{users.length} registered users</p>
+            <p className="text-slate-500 font-medium mt-1">{totalItems} registered users</p>
           </div>
           <Button
             onClick={openAddModal}
@@ -261,7 +241,6 @@ export default function UserManagementPage() {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1);
               }}
               className="pl-11 h-11 bg-white border-slate-100 rounded-xl text-sm font-medium shadow-sm focus:ring-4 focus:ring-violet-500/5 focus:border-violet-500/20"
             />
@@ -289,7 +268,7 @@ export default function UserManagementPage() {
                 <div className="h-10 w-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-slate-500 font-bold">Loading system users...</p>
               </div>
-            ) : paginatedUsers.length === 0 ? (
+            ) : users.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Users className="h-12 w-12 text-slate-200 mb-3" />
                 <h3 className="text-sm font-bold text-slate-400 mb-1">No users found</h3>
@@ -297,10 +276,10 @@ export default function UserManagementPage() {
               </div>
             ) : (
               <div>
-                {paginatedUsers.map((user, index) => (
+                {users.map((user, index) => (
                   <div
                     key={user.id}
-                    className={`group grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== paginatedUsers.length - 1 ? "border-b border-slate-50" : ""
+                    className={`group grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== users.length - 1 ? "border-b border-slate-50" : ""
                       }`}
                   >
                     {/* ID */}
@@ -390,27 +369,18 @@ export default function UserManagementPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => fetchUsers(currentPage - 2)}
+              disabled={currentPage === 1 || loading}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-9 w-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${currentPage === page
-                  ? "bg-slate-900 text-white shadow-md"
-                  : "bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
-              >
-                {page}
-              </button>
-            ))}
+            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-4">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => fetchUsers(currentPage)}
+              disabled={currentPage === totalPages || loading}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronRight className="h-4 w-4" />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -24,10 +24,10 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 
-import { borrowService, BorrowRecord } from "@/src/services/borrowService";
+import { borrowService, BorrowRecord, PaginatedBorrowResponse } from "@/src/services/borrowService";
 
 
-const ITEMS_PER_PAGE = 8;
+import { ITEMS_PER_PAGE } from "@/src/lib/constants";
 
 const emptyRecord: Omit<BorrowRecord, "borrowid"> = {
   borrowdate: new Date().toISOString().split("T")[0],
@@ -54,54 +54,58 @@ function BorrowManagementContent() {
   const [records, setRecords] = useState<BorrowRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchUserId, setSearchUserId] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<BorrowRecord | null>(null);
-  const [formData, setFormData] = useState<Omit<BorrowRecord, "borrowid">>(emptyRecord);
   const [filterStatus, setFilterStatus] = useState<string | null>(searchParams.get("status"));
 
   // Sync state with URL search params (Navbar navigation)
-  React.useEffect(() => {
+  useEffect(() => {
     const status = searchParams.get("status");
     setFilterStatus(status);
   }, [searchParams]);
 
-  const fetchRecords = async (status: string | null = null, searchId: string = "") => {
+  const fetchRecords = useCallback(async (page: number = 0) => {
     setLoading(true);
-    let data: BorrowRecord[] = [];
+    let response: PaginatedBorrowResponse | null;
 
-    if (searchId.trim()) {
-      data = await borrowService.getBorrowHistoryByUserId(parseInt(searchId.trim()));
-    } else if (status === "REQUESTED") {
-      data = await borrowService.getRequestedBorrows();
+    if (searchUserId.trim()) {
+      response = await borrowService.getBorrowHistoryByUserId(parseInt(searchUserId.trim()), page, ITEMS_PER_PAGE);
+    } else if (filterStatus === "REQUESTED") {
+      response = await borrowService.getRequestedBorrows(page, ITEMS_PER_PAGE);
     } else {
-      data = await borrowService.getAllBorrows();
+      response = await borrowService.getAllBorrows(page, ITEMS_PER_PAGE);
     }
-    setRecords(data);
+
+    if (response) {
+      // Corrected: Using 'history' key directly from PaginatedBorrowResponse
+      setRecords(response.history || []);
+      setTotalPages(response.totalPages || 1);
+      setTotalItems(response.totalItems || 0);
+      setCurrentPage((response.currentPage ?? 0) + 1);
+    } else {
+      setRecords([]);
+      setTotalPages(1);
+      setTotalItems(0);
+    }
     setLoading(false);
-  };
+  }, [filterStatus, searchUserId]);
+
+  useEffect(() => {
+    fetchRecords(0);
+  }, [fetchRecords]);
 
   // Debounced search logic
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = setTimeout(() => {
-      fetchRecords(filterStatus, searchUserId);
+      fetchRecords(0);
     }, 500);
-
     return () => clearTimeout(handler);
-  }, [searchUserId, filterStatus]);
+  }, [searchUserId, filterStatus, fetchRecords]);
 
-  // ----- Filtering -----
-  const filteredRecords = records.filter((rec) => {
-    if (filterStatus && rec.status !== filterStatus) return false;
-    return true;
-  });
-
-  // ----- Pagination -----
-  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
-  const paginatedRecords = filteredRecords.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const [showModal, setShowModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<BorrowRecord | null>(null);
+  const [formData, setFormData] = useState<Omit<BorrowRecord, "borrowid">>(emptyRecord);
 
   // ----- Handlers -----
   const openAddModal = () => {
@@ -180,7 +184,7 @@ function BorrowManagementContent() {
               <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest">Borrowing Records</span>
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Borrowing Management</h1>
-            <p className="text-slate-500 font-medium mt-1">{records.length} total records</p>
+            <p className="text-slate-500 font-medium mt-1">{totalItems} total records</p>
           </div>
           <Button
             onClick={openAddModal}
@@ -200,7 +204,6 @@ function BorrowManagementContent() {
               value={searchUserId}
               onChange={(e) => {
                 setSearchUserId(e.target.value);
-                setCurrentPage(1);
               }}
               className="pl-11 h-11 bg-white border-slate-100 rounded-xl text-sm font-medium shadow-sm focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/20"
             />
@@ -209,7 +212,6 @@ function BorrowManagementContent() {
             <button
               onClick={() => {
                 setFilterStatus(filterStatus === "REQUESTED" ? null : "REQUESTED");
-                setCurrentPage(1);
               }}
               className={`h-11 px-5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${filterStatus === "REQUESTED"
                 ? "bg-amber-100 text-amber-700 ring-2 ring-amber-300"
@@ -250,7 +252,7 @@ function BorrowManagementContent() {
                 <div className="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-slate-500 font-bold">Loading borrowings...</p>
               </div>
-            ) : paginatedRecords.length === 0 ? (
+            ) : records.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <ArrowRightLeft className="h-12 w-12 text-slate-200 mb-3" />
                 <h3 className="text-sm font-bold text-slate-400 mb-1">No records found</h3>
@@ -258,13 +260,13 @@ function BorrowManagementContent() {
               </div>
             ) : (
               <div>
-                {paginatedRecords.map((rec, index) => {
+                {records.map((rec, index) => {
                   const st = getStatus(rec.status);
                   const StatusIcon = st.icon;
                   return (
                     <div
                       key={rec.borrowid}
-                      className={`group grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== paginatedRecords.length - 1 ? "border-b border-slate-50" : ""
+                      className={`group grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== records.length - 1 ? "border-b border-slate-50" : ""
                         }`}
                     >
                       {/* ID */}
@@ -328,27 +330,18 @@ function BorrowManagementContent() {
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => fetchRecords(currentPage - 2)}
+              disabled={currentPage === 1 || loading}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-9 w-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${currentPage === page
-                  ? "bg-slate-900 text-white shadow-md"
-                  : "bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
-              >
-                {page}
-              </button>
-            ))}
+            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-4">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => fetchRecords(currentPage)}
+              disabled={currentPage === totalPages || loading}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronRight className="h-4 w-4" />

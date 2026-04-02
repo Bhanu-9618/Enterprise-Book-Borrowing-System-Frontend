@@ -25,7 +25,7 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
 import { useInView } from "react-intersection-observer";
-import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
+import { BOOK_CATEGORIES, BOOKS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
 // ---------- Constants ----------
 
@@ -50,7 +50,7 @@ export default function AdminBookManagementPage() {
     const handler = setTimeout(async () => {
       if (searchTerm.trim().length > 0) {
         setIsSearching(true);
-        const results = await bookService.searchBooks(searchTerm, 0, ITEMS_PER_PAGE);
+        const results = await bookService.searchBooks(searchTerm, 0, BOOKS_PER_PAGE);
         setSearchResults(results);
         setIsSearching(false);
       } else if (searchById.trim().length === 0) {
@@ -80,7 +80,7 @@ export default function AdminBookManagementPage() {
 
   const updateSearchPage = async (page: number) => {
     setIsSearching(true);
-    const results = await bookService.searchBooks(searchTerm, page - 1, ITEMS_PER_PAGE);
+    const results = await bookService.searchBooks(searchTerm, page - 1, BOOKS_PER_PAGE);
     setSearchResults(results);
     setIsSearching(false);
   };
@@ -305,7 +305,7 @@ function AdminCategorySection({
   const fetchData = useCallback(async (pageIndex: number) => {
     setIsLoading(true);
     try {
-      const res = await bookService.getBooksByCategory(category, pageIndex, ITEMS_PER_PAGE);
+      const res = await bookService.getBooksByCategory(category, pageIndex, BOOKS_PER_PAGE);
       setData(res);
     } catch (err) {
       console.error(err);

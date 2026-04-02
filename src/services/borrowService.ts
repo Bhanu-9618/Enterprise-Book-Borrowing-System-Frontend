@@ -24,24 +24,40 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface PaginatedBorrowResponse {
+  totalItems: number;
+  history: BorrowRecord[];
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface PaginatedOverdueResponse {
+  totalItems: number;
+  overdueRecords: OverdueRecord[];
+  totalPages: number;
+  currentPage: number;
+}
+
 export const borrowService = {
   /**
-   * Fetches the borrow history for a specific user ID.
-   * URL: http://localhost:8080/borrow/search/{userId}
+   * Fetches paginated borrow history for a specific user ID.
+   * URL: http://localhost:8080/borrow/search/{userid}?page=0&size=10
    */
-  getBorrowHistoryByUserId: async (userId: number): Promise<BorrowRecord[]> => {
+  getBorrowHistoryByUserId: async (userId: number, page: number = 0, size: number = 10): Promise<PaginatedBorrowResponse | null> => {
     try {
-      const response = await api.get(`/borrow/search/${userId}`);
-      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+      const response = await api.get(`/borrow/search/${userId}`, {
+        params: { page, size }
+      });
+      if (response.data?.code === 200 && response.data.data) {
         return response.data.data;
       }
-      return [];
+      return null;
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        return [];
+        return null;
       }
       console.error('Error fetching borrow history:', error);
-      return [];
+      return null;
     }
   },
 
@@ -111,19 +127,19 @@ export const borrowService = {
   },
 
   /**
-   * Fetches all borrow records.
-   * URL: http://localhost:8080/borrow/all
+   * Fetches paginated all borrow records.
+   * URL: http://localhost:8080/borrow/all?page=0&size=10
    */
-  getAllBorrows: async (): Promise<BorrowRecord[]> => {
+  getAllBorrows: async (page: number = 0, size: number = 10): Promise<PaginatedBorrowResponse | null> => {
     try {
-      const response = await api.get('/borrow/all');
-      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+      const response = await api.get('/borrow/all', { params: { page, size } });
+      if (response.data?.code === 200 && response.data.data) {
         return response.data.data;
       }
-      return [];
+      return null;
     } catch (error) {
       console.error('Error fetching all borrow records:', error);
-      return [];
+      return null;
     }
   },
 
@@ -142,36 +158,36 @@ export const borrowService = {
   },
 
   /**
-   * Fetches all requested (pending) borrow records.
-   * URL: http://localhost:8080/borrow/requested
+   * Fetches paginated all requested (pending) borrow records.
+   * URL: http://localhost:8080/borrow/requested?page=0&size=10
    */
-  getRequestedBorrows: async (): Promise<BorrowRecord[]> => {
+  getRequestedBorrows: async (page: number = 0, size: number = 10): Promise<PaginatedBorrowResponse | null> => {
     try {
-      const response = await api.get('/borrow/requested');
-      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+      const response = await api.get('/borrow/requested', { params: { page, size } });
+      if (response.data?.code === 200 && response.data.data) {
         return response.data.data;
       }
-      return [];
+      return null;
     } catch (error) {
       console.error('Error fetching requested borrow records:', error);
-      return [];
+      return null;
     }
   },
 
   /**
-   * Fetches all overdue borrow records.
-   * URL: http://localhost:8080/borrow/overdue
+   * Fetches paginated overdue borrow records.
+   * URL: http://localhost:8080/borrow/overdue?page=0&size=10
    */
-  getOverdueBorrows: async (): Promise<OverdueRecord[]> => {
+  getOverdueBorrows: async (page: number = 0, size: number = 10): Promise<PaginatedOverdueResponse | null> => {
     try {
-      const response = await api.get('/borrow/overdue');
-      if (response.data?.code === 200 && Array.isArray(response.data.data)) {
+      const response = await api.get('/borrow/overdue', { params: { page, size } });
+      if (response.data?.code === 200 && response.data.data) {
         return response.data.data;
       }
-      return [];
+      return null;
     } catch (error) {
       console.error('Error fetching overdue borrow records:', error);
-      return [];
+      return null;
     }
   },
 

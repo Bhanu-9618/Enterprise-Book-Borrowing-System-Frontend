@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
@@ -18,7 +18,7 @@ import { Input } from "@/src/components/ui/input";
 
 import { borrowService, OverdueRecord } from "@/src/services/borrowService";
 
-const ITEMS_PER_PAGE = 8;
+import { ITEMS_PER_PAGE } from "@/src/lib/constants";
 
 
 // ========== COMPONENT ==========
@@ -27,6 +27,34 @@ function OverdueManagementContent() {
   const [loading, setLoading] = useState(true);
   const [searchUserId, setSearchUserId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const fetchRecords = useCallback(async (page: number = 0) => {
+    setLoading(true);
+    try {
+      const response = await borrowService.getOverdueBorrows(page, ITEMS_PER_PAGE);
+      if (response) {
+        setRecords(response.overdueRecords || []);
+        setTotalPages(response.totalPages);
+        setTotalItems(response.totalItems);
+        setCurrentPage(response.currentPage + 1);
+      } else {
+        setRecords([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      }
+    } catch (error) {
+      console.error("Error fetching overdue records:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRecords(0);
+  }, [fetchRecords]);
+
 
   const [showFineModal, setShowFineModal] = useState(false);
   const [fineDetails, setFineDetails] = useState({
@@ -35,30 +63,6 @@ function OverdueManagementContent() {
     userId: 0,
     paymentStatus: "UNPAID",
   });
-
-  const fetchRecords = async () => {
-    setLoading(true);
-    const data = await borrowService.getOverdueBorrows();
-    setRecords(data);
-    setLoading(false);
-  };
-
-  React.useEffect(() => {
-    fetchRecords();
-  }, []);
-
-  // ----- Filtering (only show search match) -----
-  const filteredRecords = records.filter((rec) => {
-    if (!searchUserId.trim()) return true;
-    return rec.userid.toString() === searchUserId.trim();
-  });
-
-  // ----- Pagination -----
-  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / ITEMS_PER_PAGE));
-  const paginatedRecords = filteredRecords.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
 
   // ----- Handlers -----
   const handleFine = (rec: OverdueRecord) => {
@@ -104,7 +108,7 @@ function OverdueManagementContent() {
               <span className="text-sm font-bold text-rose-600 uppercase tracking-widest">Overdue Records</span>
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Overdue Management</h1>
-            <p className="text-slate-500 font-medium mt-1">{filteredRecords.length} overdue items need attention</p>
+            <p className="text-slate-500 font-medium mt-1">{totalItems} overdue items need attention</p>
           </div>
           <Link href="/staff/borrow-management">
             <Button
@@ -125,7 +129,6 @@ function OverdueManagementContent() {
               value={searchUserId}
               onChange={(e) => {
                 setSearchUserId(e.target.value);
-                setCurrentPage(1);
               }}
               className="pl-11 h-11 bg-white border-slate-100 rounded-xl text-sm font-medium shadow-sm focus:ring-4 focus:ring-rose-500/5 focus:border-rose-500/20"
             />
@@ -156,7 +159,7 @@ function OverdueManagementContent() {
                 <div className="h-10 w-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-slate-500 font-bold">Loading overdue records...</p>
               </div>
-            ) : paginatedRecords.length === 0 ? (
+            ) : records.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <AlertCircle className="h-12 w-12 text-slate-200 mb-3" />
                 <h3 className="text-sm font-bold text-slate-400 mb-1">No overdue records</h3>
@@ -164,11 +167,11 @@ function OverdueManagementContent() {
               </div>
             ) : (
               <div>
-                {paginatedRecords.map((rec, index) => {
+                {records.map((rec, index) => {
                   return (
                     <div
                       key={rec.borrowid}
-                      className={`group grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 items-center hover:bg-rose-50/30 transition-colors ${index !== paginatedRecords.length - 1 ? "border-b border-slate-50" : ""
+                      className={`group grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 items-center hover:bg-rose-50/30 transition-colors ${index !== records.length - 1 ? "border-b border-slate-50" : ""
                         }`}
                     >
                       {/* ID */}
@@ -214,27 +217,18 @@ function OverdueManagementContent() {
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => fetchRecords(currentPage - 2)}
+              disabled={currentPage === 1 || loading}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-9 w-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${currentPage === page
-                  ? "bg-slate-900 text-white shadow-md"
-                  : "bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
-              >
-                {page}
-              </button>
-            ))}
+            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-4">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => fetchRecords(currentPage)}
+              disabled={currentPage === totalPages || loading}
               className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronRight className="h-4 w-4" />
