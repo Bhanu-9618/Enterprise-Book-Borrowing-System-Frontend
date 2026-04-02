@@ -150,7 +150,7 @@ function BorrowManagementContent() {
           toast.error(response.message || "Failed to save record");
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("An error occurred while saving.");
     } finally {

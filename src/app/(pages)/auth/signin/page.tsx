@@ -52,11 +52,17 @@ export default function SigninPage() {
           router.push('/users');
         }
       } else {
-        setError(response.message || "Login failed. Please check your credentials.");
+        setError(response.message || "Invalid email or password.");
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { message?: string })?.message || "Login failed. Please check your credentials.";
-      setError(errorMessage);
+      // Type-safe error handling
+      const errorData = err as { code?: number; status?: number; message?: string };
+      
+      if (errorData.code === 401 || errorData.status === 401) {
+        setError("Invalid email or password. Please try again.");
+      } else {
+        setError(errorData.message || "Login failed. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
@@ -65,6 +71,7 @@ export default function SigninPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError(null);
   };
 
   return (

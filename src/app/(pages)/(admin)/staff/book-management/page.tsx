@@ -167,7 +167,7 @@ export default function AdminBookManagementPage() {
           toast.error(response.message || "Failed to add book");
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("An error occurred while saving the book.");
     }
@@ -183,7 +183,7 @@ export default function AdminBookManagementPage() {
       } else {
         toast.error(response.message || "Failed to delete book");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error("An error occurred while deleting the book.");
     } finally {
