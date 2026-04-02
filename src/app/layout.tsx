@@ -2,6 +2,12 @@ import "./globals.css";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Navbar from "@/src/components/Navbar";
 import { Toaster } from "react-hot-toast";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "LuminaLibrary",
+  description: "Advanced Digital Library Management System",
+};
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
