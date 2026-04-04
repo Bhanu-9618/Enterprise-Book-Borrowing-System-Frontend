@@ -25,14 +25,8 @@ export const bookService = {
      * Public access: No authentication required.
      */
     getBookCount: async (): Promise<number> => {
-        try {
-            const response = await api.get('/book/count');
-            // Assuming the same response structure: { code, message, data }
-            return response.data.data || 0;
-        } catch (error) {
-            console.error('Error fetching book count:', error);
-            return 0;
-        }
+        const response = await api.get('/book/count');
+        return response.data?.data || 0;
     },
 
     /**
@@ -40,18 +34,13 @@ export const bookService = {
      * URL: http://localhost:8080/book/all
      */
     getBooksByCategory: async (category: string, page: number = 0, size: number = 16): Promise<PaginatedBooksResponse | null> => {
-        try {
-            const response = await api.get('/book/all', {
-                params: { category, page, size }
-            });
-            if (response.data?.code === 200 && response.data.data) {
-                return response.data.data;
-            }
-            return null;
-        } catch (error) {
-            console.error(`Error fetching books for category ${category}:`, error);
-            return null;
+        const response = await api.get('/book/all', {
+            params: { category, page, size }
+        });
+        if (response.data?.code === 200 && response.data.data) {
+            return response.data.data;
         }
+        return null;
     },
 
     /**
@@ -59,18 +48,13 @@ export const bookService = {
      * URL: http://localhost:8080/book/search
      */
     searchBooks: async (term: string, page: number = 0, size: number = 16): Promise<PaginatedBooksResponse | null> => {
-        try {
-            const response = await api.get('/book/search', {
-                params: { term, page, size }
-            });
-            if (response.data?.code === 200 && response.data.data) {
-                return response.data.data;
-            }
-            return null;
-        } catch (error) {
-            console.error(`Error searching books for term ${term}:`, error);
-            return null;
+        const response = await api.get('/book/search', {
+            params: { term, page, size }
+        });
+        if (response.data?.code === 200 && response.data.data) {
+            return response.data.data;
         }
+        return null;
     },
 
     /**
@@ -85,13 +69,9 @@ export const bookService = {
             }
             return null;
         } catch (error: unknown) {
-            // If it's a 404, we just return null without logging an error to the console
-            // as 'not found' is a valid result for a search.
-            if (axios.isAxiosError(error) && error.response?.status === 404) {
-                return null;
-            }
-            console.error(`Error fetching book with ID ${id}:`, error);
-            return null;
+            // Special case: 404 is a valid "not found" which we return as null
+            if (axios.isAxiosError(error) && error.response?.status === 404) return null;
+            throw error; // Let interceptor handle others
         }
     },
 
@@ -100,26 +80,17 @@ export const bookService = {
      * URL: http://localhost:8080/book/save
      */
     saveBook: async (bookData: Omit<Book, "id" | "available">): Promise<{ code: number; message: string; data?: Book }> => {
-        try {
-            const response = await api.post("/book/save", bookData);
-            return response.data;
-        } catch (error) {
-            console.error("Error saving book:", error);
-            throw error;
-        }
+        const response = await api.post("/book/save", bookData);
+        return response.data;
     },
+
     /**
      * Updates an existing book in the database.
      * URL: http://localhost:8080/book/update
      */
     updateBook: async (book: Book): Promise<{ code: number; message: string; data?: Book }> => {
-        try {
-            const response = await api.put("/book/update", book);
-            return response.data;
-        } catch (error) {
-            console.error("Error updating book:", error);
-            throw error;
-        }
+        const response = await api.put("/book/update", book);
+        return response.data;
     },
 
     /**
@@ -127,12 +98,7 @@ export const bookService = {
      * URL: http://localhost:8080/book/delete/{id}
      */
     deleteBook: async (id: number): Promise<{ code: number; message: string }> => {
-        try {
-            const response = await api.delete(`/book/delete/${id}`);
-            return response.data;
-        } catch (error) {
-            console.error(`Error deleting book with ID ${id}:`, error);
-            throw error;
-        }
+        const response = await api.delete(`/book/delete/${id}`);
+        return response.data;
     },
 };
