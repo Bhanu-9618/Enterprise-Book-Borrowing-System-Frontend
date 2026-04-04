@@ -30,7 +30,7 @@ const features = [
 ];
 
 const LandingPage = async () => {
-  // Parallel fetch for better performance
+
   const [userCount, bookCount] = await Promise.all([
     userService.getUserCount(),
     bookService.getBookCount(),
@@ -44,10 +44,10 @@ const LandingPage = async () => {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Hero Section */}
+
       <HeroCarousel />
 
-      {/* Features Section */}
+
       <section className="mx-auto max-w-7xl px-6 py-24 sm:px-12 lg:px-20">
         <div className="text-center mb-16">
           <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-500 mb-4">
@@ -83,7 +83,7 @@ const LandingPage = async () => {
           ))}
         </div>
 
-        {/* Call to Action Button */}
+
         <div className="mt-20 text-center animate-in fade-in slide-in-from-bottom-6 duration-1000">
           <p className="text-sm font-bold text-slate-400 mb-6 uppercase tracking-[0.2em]">Ready to start reading?</p>
           <Link
@@ -96,7 +96,7 @@ const LandingPage = async () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+
       <section className="bg-slate-950 py-24 text-white overflow-hidden relative border-t border-slate-900/50">
         <div className="absolute inset-0 opacity-10 blur-3xl pointer-events-none">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full" />

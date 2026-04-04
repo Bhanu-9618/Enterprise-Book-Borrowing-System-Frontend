@@ -38,7 +38,7 @@ export default function SigninPage() {
       const response = await userService.login(formData);
 
       if (response.code === 200) {
-        // Update store
+
         setAuth({
           token: response.data.token,
           role: response.data.role,
@@ -46,7 +46,7 @@ export default function SigninPage() {
           name: response.data.name
         });
 
-        // Redirect based on role
+
         if (response.data.role === 'ADMIN') {
           router.push('/staff');
         } else {
@@ -56,7 +56,7 @@ export default function SigninPage() {
         setError(response.message || "Invalid email or password.");
       }
     } catch (err: unknown) {
-      // Type-safe error handling
+
       const errorData = err as { code?: number; status?: number; message?: string };
 
       if (errorData.code === 401 || errorData.status === 401) {
@@ -77,7 +77,7 @@ export default function SigninPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-24 relative overflow-hidden">
-      {/* High-quality background image */}
+
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/Lumina signup.jpg"
@@ -118,7 +118,7 @@ export default function SigninPage() {
 
           <CardContent className="px-10 pb-12">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
+
               <div className="space-y-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Email Address</label>
                 <div className="relative group">
@@ -135,7 +135,7 @@ export default function SigninPage() {
                 </div>
               </div>
 
-              {/* Password */}
+
               <div className="space-y-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Password</label>
                 <div className="relative group">

@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   React.useEffect(() => {
     const timer = setTimeout(() => setHydrated(true), 0);
     
-    // Fetch stats
+
     const fetchStats = async () => {
       try {
         const [bookCount, borrowCount, requestedCount, overdueCount] = await Promise.all([
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
-      {/* Background Image with Overlay */}
+
       <div className="fixed inset-0 z-0">
         <Image
           src="/images/Admin dash.jpg"
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
       </div>
 
       <main className="relative z-10 max-w-7xl mx-auto px-6 py-10">
-        {/* Welcome Section */}
+
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-5 w-5 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
           <p className="text-slate-800 font-bold text-lg drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)]">Here&apos;s what&apos;s happening at your library today.</p>
         </div>
 
-        {/* Management Tabs */}
+
         <div className="flex justify-center mb-12 mt-8">
           <div className="flex flex-wrap items-center justify-center gap-3 p-2 bg-white/60 backdrop-blur-2xl rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border border-white/80 max-w-max">
             {[
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Stats Grid */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {statsCards.map((stat) => (
             <Card

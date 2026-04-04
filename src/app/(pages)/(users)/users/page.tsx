@@ -30,7 +30,7 @@ import { BookSkeleton, CategorySkeleton } from "@/src/components/skeletons/BookS
 
 import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
-// ========== COMPONENT ==========
+
 export default function UserDashboardPage() {
   const { name, id: userId } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
@@ -49,7 +49,7 @@ export default function UserDashboardPage() {
   const [searchPage, setSearchPage] = useState(0);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  // Debounce logic for Term
+
   React.useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -58,7 +58,7 @@ export default function UserDashboardPage() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Debounce logic for ID
+
   React.useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchById(searchById);
@@ -67,7 +67,7 @@ export default function UserDashboardPage() {
     return () => clearTimeout(handler);
   }, [searchById]);
 
-  // React Query for Search
+
   const { data: searchResults, isFetching: isSearching } = useQuery({
     queryKey: ['books', 'search', debouncedSearchTerm, debouncedSearchById, searchPage],
     queryFn: async () => {
@@ -104,7 +104,7 @@ export default function UserDashboardPage() {
       if (response.code === 200 || response.code === 201) {
         toast.success("Book borrowed successfully!");
         setSelectedBook(null);
-        // Refresh all book queries to reflect decreased copy count
+
         queryClient.invalidateQueries({ queryKey: ['books'] });
       } else {
         toast.error(response.message || "Failed to borrow book");
@@ -120,7 +120,7 @@ export default function UserDashboardPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
-      {/* Background Image with Overlay */}
+
       <div className="fixed inset-0 z-0">
         <Image
           src="/images/Admin dash.jpg"
@@ -135,7 +135,7 @@ export default function UserDashboardPage() {
       </div>
 
       <main className="relative z-10 mx-auto px-4 py-8" style={{ maxWidth: "1800px" }}>
-        {/* Welcome Greeting */}
+
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-5 w-5 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
@@ -147,7 +147,7 @@ export default function UserDashboardPage() {
           <p className="text-slate-800 font-bold text-lg drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)]">Browse our catalog and borrow your next favorite book.</p>
         </div>
 
-        {/* Search Section */}
+
         <div className="flex flex-col sm:flex-row gap-4 mb-10">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 transition-colors group-focus-within:text-blue-500" />
@@ -175,7 +175,7 @@ export default function UserDashboardPage() {
           </div>
         </div>
 
-        {/* Display Logic: Search Results or Categories */}
+
         {(searchTerm.trim().length > 0 || searchById.trim().length > 0) ? (
           <div className="space-y-8">
             <div className="relative text-center">
@@ -249,7 +249,7 @@ export default function UserDashboardPage() {
                   ))}
                 </div>
 
-                {/* Search Pagination */}
+
                 {searchResults.totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8">
                     <button
@@ -287,7 +287,7 @@ export default function UserDashboardPage() {
         )}
       </main>
 
-      {/* ========== BORROW CONFIRMATION MODAL ========== */}
+
       {selectedBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
@@ -296,7 +296,7 @@ export default function UserDashboardPage() {
           />
 
           <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
+
             <div className="flex items-center justify-between px-8 pt-8 pb-2">
               <div>
                 <h2 className="text-xl font-black text-slate-900">Borrow Book</h2>
@@ -311,7 +311,7 @@ export default function UserDashboardPage() {
             </div>
 
             <div className="px-8 pb-8 space-y-5">
-              {/* Book Details Card */}
+
               <div className="bg-slate-50 rounded-2xl p-5 space-y-3">
                 <h3 className="text-lg font-black text-slate-900 leading-snug">{selectedBook.title}</h3>
                 <div className="space-y-2">
@@ -338,7 +338,7 @@ export default function UserDashboardPage() {
                 </div>
               </div>
 
-              {/* Borrowing Policy Note */}
+
               <div className="bg-blue-50/50 border border-blue-100/50 rounded-2xl p-5 flex items-start gap-4">
                 <div className="mt-0.5 p-2 bg-blue-100 rounded-xl">
                   <Info className="h-5 w-5 text-blue-600" />
@@ -351,7 +351,7 @@ export default function UserDashboardPage() {
                 </div>
               </div>
 
-              {/* Confirm Button */}
+
               <Button
                 onClick={handleConfirmBorrow}
                 disabled={isBorrowing}
@@ -377,7 +377,7 @@ export default function UserDashboardPage() {
   );
 }
 
-// ========== SUB-COMPONENT: CATEGORY SECTION ==========
+
 function CategorySection({ 
   category, 
   onBorrow 
@@ -413,7 +413,7 @@ function CategorySection({
         <CategorySkeleton />
       ) : (
         <>
-          {/* Category Title */}
+
           <div className="relative text-center">
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
             <span className="relative z-10 px-10 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight py-2.5 max-w-max drop-shadow-sm uppercase">

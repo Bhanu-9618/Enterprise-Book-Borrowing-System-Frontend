@@ -19,17 +19,15 @@ export const useAuthStore = create<AuthState>()(
       id: null,
       name: null,
       setAuth: (data) => {
-        // Sync to cookies for Middleware access
-        Cookies.set('token', data.token, { expires: 7 }); // 7 days
+        Cookies.set('token', data.token, { expires: 7 });
         Cookies.set('role', data.role, { expires: 7 });
         set({ ...data });
       },
       clearAuth: () => {
-        // Remove cookies
         Cookies.remove('token');
         Cookies.remove('role');
         set({ token: null, role: null, id: null, name: null });
-        // Force fully clear localStorage as well
+
         if (typeof window !== 'undefined') {
           localStorage.removeItem('auth-storage');
         }

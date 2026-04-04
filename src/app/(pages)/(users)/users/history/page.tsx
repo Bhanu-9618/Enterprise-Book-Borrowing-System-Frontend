@@ -31,7 +31,7 @@ const statusConfig: Record<string, { bg: string; text: string; icon: React.Eleme
 const getStatus = (s: string) =>
   statusConfig[s] || { bg: "bg-slate-50", text: "text-slate-700", icon: XCircle };
 
-// ========== COMPONENT ==========
+
 function HistoryContent() {
   const [records, setRecords] = useState<BorrowRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +73,7 @@ function HistoryContent() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
-      {/* Background Image with Overlay */}
+
       <div className="fixed inset-0 z-0">
         <Image
           src="/images/Admin dash.jpg"
@@ -88,7 +88,7 @@ function HistoryContent() {
       </div>
 
       <main className="relative z-10 mx-auto px-4 py-8" style={{ maxWidth: "1800px" }}>
-        {/* Page Header (Match Admin Design) */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -105,10 +105,10 @@ function HistoryContent() {
           </Link>
         </div>
 
-        {/* Borrow Table (Match Admin Grid Style) */}
+
         <div className="bg-white rounded-[2rem] border border-slate-200 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] overflow-x-auto">
           <div className="min-w-[1200px]">
-          {/* Table Header */}
+
           <div className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-5 bg-white border-b border-slate-100">
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Borrow ID</span>
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Book ID</span>
@@ -118,7 +118,7 @@ function HistoryContent() {
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Status</span>
           </div>
 
-          {/* Table Body */}
+
           {isLoading ? (
             <div className="space-y-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -150,34 +150,34 @@ function HistoryContent() {
                       index !== records.length - 1 ? "border-b border-white/20" : ""
                     }`}
                   >
-                    {/* Borrow ID */}
+
                     <span className="text-xs font-black text-slate-900">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
-                    {/* Book ID */}
+
                     <div className="flex flex-col">
                       <span className="text-sm font-black text-slate-900">#{rec.bookid}</span>
                     </div>
 
-                    {/* Borrow Date */}
+
                     <div className="flex items-center gap-2">
                       <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="text-xs font-bold text-slate-800">{rec.borrowdate}</span>
                     </div>
 
-                    {/* Due Date */}
+
                     <div className="flex items-center gap-2">
                       <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="text-xs font-bold text-slate-800">{rec.dueDate}</span>
                     </div>
 
-                    {/* Return Date */}
+
                     <span className="text-xs font-bold text-slate-600">
                       {rec.returnDate || (
                         <span className="text-slate-400 italic">—</span>
                       )}
                     </span>
 
-                    {/* Status */}
+
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold w-fit ${st.bg} ${st.text}`}>
                       <StatusIcon className="h-3.5 w-3.5" />
                       {rec.status}
@@ -190,7 +190,7 @@ function HistoryContent() {
           </div>
         </div>
 
-        {/* Pagination */}
+
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-12">
             <button

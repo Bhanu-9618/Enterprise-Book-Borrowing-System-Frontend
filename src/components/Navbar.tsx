@@ -31,8 +31,6 @@ import {
 } from "lucide-react";
 
 const navLinks: { href: string; label: string }[] = [
-  // { href: "/", label: "Home" },
-  // { href: "/explore", label: "Explore" },
 ];
 
 const categories = [
@@ -63,7 +61,7 @@ export default function Navbar() {
   
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    // Delay setting hydrated state to allow for initial render match without triggering hydration mismatch errors
+
     const timer = setTimeout(() => {
       setHydrated(true);
     }, 0);
@@ -81,7 +79,7 @@ export default function Navbar() {
   const megaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const onScroll = () => { /* No longer needed for background state */ };
+    const onScroll = () => {};
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -126,13 +124,13 @@ export default function Navbar() {
     router.push("/auth/signin");
   };
 
-  // Redirect logged-in users away from public pages if they try to visit them manually ("by force")
+
   useEffect(() => {
     if (!hydrated) return;
 
     const cookieToken = Cookies.get('token');
     
-    // Safety: If cookie is gone but store has token, clear store to avoid loop
+
     if (!cookieToken && token) {
       clearAuth();
       return;
@@ -159,7 +157,7 @@ export default function Navbar() {
       >
 
         <div className="mx-auto flex h-16 max-w-full items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Dynamic logo routing: Sends logged-in users to their dashboard, guests to the landing page */}
+
           <Link href={!hydrated ? "/" : isAuth ? (isAdmin ? "/staff" : "/users") : "/"} className="group relative flex items-center gap-2.5">
             <span className="absolute -inset-2 rounded-2xl bg-blue-500/10 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100" />
             <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:rotate-3">
@@ -307,7 +305,7 @@ export default function Navbar() {
                     </div>
                   </div>
                   
-                  {/* Profile Dropdown */}
+
                   {profileOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
@@ -495,13 +493,7 @@ export default function Navbar() {
         <div className="absolute inset-y-0 left-0 w-[2.5px] bg-blue-500 opacity-70" />
 
         <div className="flex flex-col gap-1 overflow-y-auto px-5 pt-20 pb-8">
-          {/* <button
-            onClick={() => { setMobileOpen(false); setTimeout(() => setSearchOpen(true), 200); }}
-            className="mb-4 flex items-center gap-3 rounded-xl border border-gray-200/70 bg-gray-50/70 px-4 py-3 text-sm font-bold text-gray-500 transition-all hover:border-blue-300 hover:bg-white hover:text-blue-600 shadow-sm"
-          >
-            <Search className="h-4 w-4 text-blue-500" strokeWidth={2.5} />
-            Search library...
-          </button> */}
+
 
           {navLinks.map((link, i) => (
             <Link
@@ -515,24 +507,7 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* <p className="mt-8 mb-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
-            Browse
-          </p>
-          {categories.map((cat, i) => (
-            <Link
-              key={cat.label}
-              href={`/explore?category=${cat.label.toLowerCase()}`}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-4 rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-gray-50 hover:translate-x-1"
-              style={{ animationDelay: `${220 + i * 50}ms` }}
-            >
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${cat.bg}`}>
-                <cat.icon className={`h-5 w-5 ${cat.color}`} strokeWidth={2.2} />
-              </span>
-              <span className="text-sm font-bold text-gray-800">{cat.label}</span>
-              <span className="ml-auto text-[10px] font-black text-gray-300">{cat.count}</span>
-            </Link>
-          ))} */}
+
 
           <div className="my-6 h-px bg-gray-100" />
 

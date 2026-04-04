@@ -39,7 +39,7 @@ const emptyUser: Omit<UserData, "id"> = {
   isActive: true,
 };
 
-// ========== COMPONENT ==========
+
 export default function UserManagementPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +82,7 @@ export default function UserManagementPage() {
     fetchUsers(0);
   }, [fetchUsers]);
 
-  // Search logic with debounce
+
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchUsers(0);
@@ -176,10 +176,10 @@ export default function UserManagementPage() {
       setLoading(true);
       let response;
       if (user.isActive) {
-        // Deactivate via Soft Delete
+
         response = await userService.deleteUser(user.id);
       } else {
-        // Activate via Update
+
         response = await userService.updateUser({ ...user, isActive: true });
       }
 
@@ -213,7 +213,7 @@ export default function UserManagementPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto px-4 py-6" style={{ maxWidth: "1800px" }}>
-        {/* Page Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -232,7 +232,7 @@ export default function UserManagementPage() {
           </Button>
         </div>
 
-        {/* Search */}
+
         <div className="mb-6">
           <div className="relative group max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-violet-500" />
@@ -247,10 +247,10 @@ export default function UserManagementPage() {
           </div>
         </div>
 
-        {/* Users List Table */}
+
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1200px]">
-            {/* Table Header */}
+
             <div className="grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3 bg-white border-b border-slate-100">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Name</span>
@@ -262,7 +262,7 @@ export default function UserManagementPage() {
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
 
-            {/* Table Body */}
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="h-10 w-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
@@ -282,10 +282,10 @@ export default function UserManagementPage() {
                     className={`group grid grid-cols-[50px_1fr_1.2fr_0.8fr_1fr_0.8fr_0.6fr_100px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== users.length - 1 ? "border-b border-slate-50" : ""
                       }`}
                   >
-                    {/* ID */}
+
                     <span className="text-xs font-black text-slate-900">#{user.id.toString().padStart(3, "0")}</span>
 
-                    {/* Name */}
+
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-[11px] font-black text-white shrink-0 ${user.role === "ADMIN"
                         ? "bg-gradient-to-br from-violet-500 to-violet-400"
@@ -296,19 +296,19 @@ export default function UserManagementPage() {
                       <span className="text-sm font-black text-slate-900 truncate">{user.name}</span>
                     </div>
 
-                    {/* Email */}
+
                     <span className="text-xs font-bold text-slate-700 truncate">{user.email}</span>
 
-                    {/* Phone */}
+
                     <span className="text-xs font-bold text-slate-700 font-mono">{user.phone}</span>
 
-                    {/* Address */}
+
                     <span className="text-xs font-bold text-slate-700 truncate">{user.address}</span>
 
-                    {/* Membership Date */}
+
                     <span className="text-xs font-bold text-slate-600">{user.membershipdate}</span>
 
-                    {/* Role */}
+
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${user.role === "ADMIN"
                       ? "bg-violet-50 text-violet-700"
                       : "bg-blue-50 text-blue-600"
@@ -317,7 +317,7 @@ export default function UserManagementPage() {
                       {user.role}
                     </span>
 
-                    {/* Actions */}
+
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => openEditModal(user)}
@@ -365,7 +365,7 @@ export default function UserManagementPage() {
           </div>
         </div>
 
-        {/* Pagination */}
+
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button
@@ -389,7 +389,7 @@ export default function UserManagementPage() {
         )}
       </main>
 
-      {/* ========== ADD / EDIT MODAL ========== */}
+
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
@@ -398,7 +398,7 @@ export default function UserManagementPage() {
           />
 
           <div className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
+
             <div className="flex items-center justify-between px-8 pt-8 pb-4">
               <div>
                 <h2 className="text-xl font-black text-slate-900">
@@ -416,10 +416,10 @@ export default function UserManagementPage() {
               </button>
             </div>
 
-            {/* Form */}
+
             <div className="px-8 pb-8 space-y-4 max-h-[70vh] overflow-y-auto">
 
-              {/* Name (Restored) */}
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                 <div className="relative group">
@@ -436,7 +436,7 @@ export default function UserManagementPage() {
                 {fieldErrors.name && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.name}</p>}
               </div>
 
-              {/* Email */}
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
                 <div className="relative group">
@@ -454,7 +454,7 @@ export default function UserManagementPage() {
                 {fieldErrors.email && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.email}</p>}
               </div>
 
-              {/* Phone */}
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone</label>
                 <div className="relative group">
@@ -464,7 +464,7 @@ export default function UserManagementPage() {
                 {fieldErrors.phone && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.phone}</p>}
               </div>
 
-              {/* Address */}
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Address</label>
                 <div className="relative group">
@@ -474,7 +474,7 @@ export default function UserManagementPage() {
                 {fieldErrors.address && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest ml-1">{fieldErrors.address}</p>}
               </div>
 
-              {/* Password (Restored - only for Add) */}
+
               {!editingUser && (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
@@ -486,7 +486,7 @@ export default function UserManagementPage() {
                 </div>
               )}
 
-              {/* Role Toggle (Restored) */}
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
                 <button
@@ -512,7 +512,7 @@ export default function UserManagementPage() {
                 </button>
               </div>
 
-              {/* Save Button */}
+
               <div className="pt-3">
                 <Button
                   onClick={handleSave}
