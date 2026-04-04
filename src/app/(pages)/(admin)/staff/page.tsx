@@ -16,6 +16,8 @@ import { borrowService } from "@/src/services/borrowService";
 
 
 
+import Image from "next/image";
+
 export default function AdminDashboard() {
   const { name } = useAuthStore();
   const [hydrated, setHydrated] = React.useState(false);
@@ -87,12 +89,18 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
       {/* Background Image with Overlay */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-        style={{ backgroundImage: "url('/images/Admin dash.jpg')" }}
-      />
-      <div className="fixed inset-0 z-0 bg-black/10 transition-opacity duration-700" />
-      <div className="fixed inset-0 z-0 bg-white/20 backdrop-blur-[3px]" />
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/images/Admin dash.jpg"
+          alt="Lumina Library Admin Dashboard Background"
+          fill
+          priority
+          quality={100}
+          className="object-cover transition-transform duration-1000 scale-105"
+        />
+        <div className="absolute inset-0 z-10 bg-black/10 transition-opacity duration-700" />
+        <div className="absolute inset-0 z-10 bg-white/20 backdrop-blur-[3px]" />
+      </div>
 
       <main className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         {/* Welcome Section */}

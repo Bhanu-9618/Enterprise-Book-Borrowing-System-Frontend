@@ -26,6 +26,8 @@ import toast from "react-hot-toast";
 import { useInView } from "react-intersection-observer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import Image from "next/image";
+
 import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
 // ========== COMPONENT ==========
@@ -119,12 +121,18 @@ export default function UserDashboardPage() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
       {/* Background Image with Overlay */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-        style={{ backgroundImage: "url('/images/Admin dash.jpg')" }}
-      />
-      <div className="fixed inset-0 z-0 bg-black/5 transition-opacity duration-700" />
-      <div className="fixed inset-0 z-0 bg-white/20 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/images/Admin dash.jpg"
+          alt="Lumina Library Dashboard Background"
+          fill
+          priority
+          quality={100}
+          className="object-cover transition-transform duration-1000 scale-105"
+        />
+        <div className="absolute inset-0 z-10 bg-black/5 transition-opacity duration-700" />
+        <div className="absolute inset-0 z-10 bg-white/20 backdrop-blur-[2px]" />
+      </div>
 
       <main className="relative z-10 mx-auto px-4 py-8" style={{ maxWidth: "1800px" }}>
         {/* Welcome Greeting */}
