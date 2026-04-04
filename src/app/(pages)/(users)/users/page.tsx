@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Search,
   ChevronLeft,
@@ -24,16 +24,16 @@ import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookSe
 import { borrowService } from "@/src/services/borrowService";
 import toast from "react-hot-toast";
 import { useInView } from "react-intersection-observer";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
-
-
 
 // ========== COMPONENT ==========
 export default function UserDashboardPage() {
   const { name, id: userId } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
   const [isBorrowing, setIsBorrowing] = useState(false);
+  const queryClient = useQueryClient();
   
   React.useEffect(() => {
     const timer = setTimeout(() => setHydrated(true), 0);
@@ -42,63 +42,45 @@ export default function UserDashboardPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchById, setSearchById] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [debouncedSearchById, setDebouncedSearchById] = useState("");
+  const [searchPage, setSearchPage] = useState(0);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [searchResults, setSearchResults] = useState<PaginatedBooksResponse | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
 
-  // Search by Term logic
+  // Debounce logic for Term
   React.useEffect(() => {
-    const handler = setTimeout(async () => {
-      if (searchTerm.trim().length > 0) {
-        setIsSearching(true);
-        const results = await bookService.searchBooks(searchTerm, 0, ITEMS_PER_PAGE);
-        setSearchResults(results);
-        setIsSearching(false);
-      } else if (searchById.trim().length === 0) {
-        setSearchResults(null);
-      }
-    }, 500); // 500ms debounce
-
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setSearchPage(0); // Reset page on new search
+    }, 500);
     return () => clearTimeout(handler);
-  }, [searchTerm, searchById]);
+  }, [searchTerm]);
 
-  // Search by ID logic
+  // Debounce logic for ID
   React.useEffect(() => {
-    const handler = setTimeout(async () => {
-      if (searchById.trim().length > 0) {
-        setIsSearching(true);
-        const book = await bookService.getBookById(searchById);
-        if (book) {
-          setSearchResults({
-            totalItems: 1,
-            books: [book],
-            totalPages: 1,
-            currentPage: 0,
-          });
-        } else {
-          setSearchResults({
-            totalItems: 0,
-            books: [],
-            totalPages: 0,
-            currentPage: 0,
-          });
-        }
-        setIsSearching(false);
-      } else if (searchTerm.trim().length === 0) {
-        setSearchResults(null);
-      }
-    }, 500); // 500ms debounce
-
+    const handler = setTimeout(() => {
+      setDebouncedSearchById(searchById);
+      setSearchPage(0);
+    }, 500);
     return () => clearTimeout(handler);
-  }, [searchById, searchTerm]);
+  }, [searchById]);
 
-  const updateSearchPage = async (newPage: number) => {
-    const pageIndex = newPage - 1;
-    setIsSearching(true);
-    const results = await bookService.searchBooks(searchTerm, pageIndex, ITEMS_PER_PAGE);
-    setSearchResults(results);
-    setIsSearching(false);
-  };
+  // React Query for Search
+  const { data: searchResults, isFetching: isSearching } = useQuery({
+    queryKey: ['books', 'search', debouncedSearchTerm, debouncedSearchById, searchPage],
+    queryFn: async () => {
+      if (debouncedSearchById.trim().length > 0) {
+        const book = await bookService.getBookById(debouncedSearchById);
+        return book ? { totalItems: 1, books: [book], totalPages: 1, currentPage: 0 } : { totalItems: 0, books: [], totalPages: 0, currentPage: 0 };
+      }
+      if (debouncedSearchTerm.trim().length > 0) {
+        return await bookService.searchBooks(debouncedSearchTerm, searchPage, ITEMS_PER_PAGE);
+      }
+      return null;
+    },
+    enabled: debouncedSearchTerm.trim().length > 0 || debouncedSearchById.trim().length > 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
   const openBorrowModal = (book: Book) => {
     setSelectedBook(book);
@@ -120,7 +102,8 @@ export default function UserDashboardPage() {
       if (response.code === 200 || response.code === 201) {
         toast.success("Book borrowed successfully!");
         setSelectedBook(null);
-        // Data will refresh on next fetch or via React Query (Issue 5)
+        // Refresh all book queries to reflect decreased copy count
+        queryClient.invalidateQueries({ queryKey: ['books'] });
       } else {
         toast.error(response.message || "Failed to borrow book");
       }
@@ -265,18 +248,18 @@ export default function UserDashboardPage() {
                 {searchResults.totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8">
                     <button
-                      onClick={() => updateSearchPage(Math.max(1, searchResults.currentPage))}
-                      disabled={searchResults.currentPage === 0}
+                      onClick={() => setSearchPage(prev => Math.max(0, prev - 1))}
+                      disabled={searchPage === 0}
                       className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     >
                       <ChevronLeft className="h-3 w-3" />
                     </button>
                     <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wide">
-                      Page {searchResults.currentPage + 1} of {searchResults.totalPages}
+                      Page {searchPage + 1} of {searchResults.totalPages}
                     </span>
                     <button
-                      onClick={() => updateSearchPage(Math.min(searchResults.totalPages, searchResults.currentPage + 2))}
-                      disabled={searchResults.currentPage + 1 === searchResults.totalPages}
+                      onClick={() => setSearchPage(prev => Math.min(searchResults.totalPages - 1, prev + 1))}
+                      disabled={searchPage + 1 === searchResults.totalPages}
                       className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     >
                       <ChevronRight className="h-3 w-3" />
@@ -397,36 +380,24 @@ function CategorySection({
   category: string, 
   onBorrow: (book: Book) => void 
 }) {
-  const [data, setData] = useState<PaginatedBooksResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(0);
   const { ref, inView } = useInView({
     triggerOnce: true,
-    rootMargin: '200px 0px', // Fetch slightly before it scrolls into view
+    rootMargin: '200px 0px',
   });
 
-  const fetchData = async (pageIndex: number) => {
-    setIsLoading(true);
-    try {
-      const res = await bookService.getBooksByCategory(category, pageIndex, ITEMS_PER_PAGE);
-      setData(res);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  React.useEffect(() => {
-    if (inView && !data) {
-      fetchData(0);
-    }
-  }, [inView, data]);
+  const { data, isFetching } = useQuery({
+    queryKey: ['books', 'category', category, page],
+    queryFn: () => bookService.getBooksByCategory(category, page, ITEMS_PER_PAGE),
+    enabled: inView,
+    staleTime: 5 * 60 * 1000,
+  });
 
   if (!inView && !data) {
-    return <div ref={ref} className="h-40" />; // Placeholder to trigger observer
+    return <div ref={ref} className="h-40" />;
   }
 
-  if (data && data.books.length === 0 && !isLoading) return null;
+  if (data && data.books.length === 0 && !isFetching) return null;
 
   const currentPage = (data?.currentPage || 0) + 1;
   const totalPages = data?.totalPages || 1;
@@ -438,7 +409,7 @@ function CategorySection({
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
         <span className="relative z-10 px-10 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight py-2.5 max-w-max drop-shadow-sm uppercase">
           {formatCategoryName(category)}
-          {isLoading && (
+          {isFetching && (
             <span className="ml-4 inline-block h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
           )}
         </span>
@@ -503,8 +474,8 @@ function CategorySection({
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-4">
           <button
-            onClick={() => fetchData(currentPage - 2)}
-            disabled={currentPage === 1 || isLoading}
+            onClick={() => setPage(prev => Math.max(0, prev - 1))}
+            disabled={page === 0 || isFetching}
             className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronLeft className="h-3 w-3" />
@@ -513,8 +484,8 @@ function CategorySection({
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => fetchData(currentPage)}
-            disabled={currentPage === totalPages || isLoading}
+            onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
+            disabled={currentPage === totalPages || isFetching}
             className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronRight className="h-3 w-3" />

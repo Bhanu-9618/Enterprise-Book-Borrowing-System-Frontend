@@ -18,15 +18,19 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+import Providers from "@/src/components/Providers";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={jakarta.variable}>
       <body className={jakarta.className}>
-        <Toaster position="top-right" reverseOrder={false} />
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
+        <Providers>
+          <Toaster position="top-right" reverseOrder={false} />
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </Providers>
         <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
           <div className="mx-auto max-w-7xl px-6 sm:px-12 lg:px-20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
