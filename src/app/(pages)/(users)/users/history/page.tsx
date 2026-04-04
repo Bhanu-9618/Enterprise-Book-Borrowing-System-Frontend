@@ -17,6 +17,7 @@ import {
   Bookmark,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import Image from "next/image";
 
 import { ITEMS_PER_PAGE } from "@/src/lib/constants";
 
@@ -30,13 +31,13 @@ const statusConfig: Record<string, { bg: string; text: string; icon: React.Eleme
 const getStatus = (s: string) =>
   statusConfig[s] || { bg: "bg-slate-50", text: "text-slate-700", icon: XCircle };
 
-// ========== COMPONENT ==========
+
 function HistoryContent() {
   const [records, setRecords] = useState<BorrowRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+
   const { id: userId } = useAuthStore();
 
   const fetchHistory = useCallback(async (page: number = 0) => {
@@ -50,12 +51,12 @@ function HistoryContent() {
       if (response) {
         setRecords(response.history || []);
         setTotalPages(response.totalPages || 1);
-        setTotalItems(response.totalItems || 0);
+
         setCurrentPage((response.currentPage ?? 0) + 1);
       } else {
         setRecords([]);
         setTotalPages(1);
-        setTotalItems(0);
+
       }
     } catch (error) {
       console.error("Failed to fetch history:", error);
@@ -72,16 +73,22 @@ function HistoryContent() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50">
-      {/* Background Image with Overlay */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-        style={{ backgroundImage: "url('/images/Admin dash.jpg')" }}
-      />
-      <div className="fixed inset-0 z-0 bg-black/5 transition-opacity duration-700" />
-      <div className="fixed inset-0 z-0 bg-white/20 backdrop-blur-[2px]" />
+
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/images/Admin dash.jpg"
+          alt="Lumina Library History Background"
+          fill
+          priority
+          quality={100}
+          className="object-cover transition-transform duration-1000 scale-105"
+        />
+        <div className="absolute inset-0 z-10 bg-black/5 transition-opacity duration-700" />
+        <div className="absolute inset-0 z-10 bg-white/20 backdrop-blur-[2px]" />
+      </div>
 
       <main className="relative z-10 mx-auto px-4 py-8" style={{ maxWidth: "1800px" }}>
-        {/* Page Header (Match Admin Design) */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -98,10 +105,10 @@ function HistoryContent() {
           </Link>
         </div>
 
-        {/* Borrow Table (Match Admin Grid Style) */}
+
         <div className="bg-white rounded-[2rem] border border-slate-200 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] overflow-x-auto">
           <div className="min-w-[1200px]">
-          {/* Table Header */}
+
           <div className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-5 bg-white border-b border-slate-100">
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Borrow ID</span>
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Book ID</span>
@@ -111,11 +118,19 @@ function HistoryContent() {
             <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Status</span>
           </div>
 
-          {/* Table Body */}
+
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 shadow-blue-500/20 shadow-lg"></div>
-              <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Retrieving history...</h3>
+            <div className="space-y-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-6 items-center animate-pulse border-b border-slate-100">
+                  <div className="h-3 w-12 bg-slate-100 rounded" />
+                  <div className="h-4 w-16 bg-slate-100 rounded" />
+                  <div className="h-3 w-20 bg-slate-50 rounded" />
+                  <div className="h-3 w-20 bg-slate-50 rounded" />
+                  <div className="h-3 w-16 bg-slate-50 rounded" />
+                  <div className="h-6 w-20 bg-slate-100 rounded-xl" />
+                </div>
+              ))}
             </div>
           ) : records.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -135,34 +150,34 @@ function HistoryContent() {
                       index !== records.length - 1 ? "border-b border-white/20" : ""
                     }`}
                   >
-                    {/* Borrow ID */}
+
                     <span className="text-xs font-black text-slate-900">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
-                    {/* Book ID */}
+
                     <div className="flex flex-col">
                       <span className="text-sm font-black text-slate-900">#{rec.bookid}</span>
                     </div>
 
-                    {/* Borrow Date */}
+
                     <div className="flex items-center gap-2">
                       <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="text-xs font-bold text-slate-800">{rec.borrowdate}</span>
                     </div>
 
-                    {/* Due Date */}
+
                     <div className="flex items-center gap-2">
                       <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="text-xs font-bold text-slate-800">{rec.dueDate}</span>
                     </div>
 
-                    {/* Return Date */}
+
                     <span className="text-xs font-bold text-slate-600">
                       {rec.returnDate || (
                         <span className="text-slate-400 italic">—</span>
                       )}
                     </span>
 
-                    {/* Status */}
+
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold w-fit ${st.bg} ${st.text}`}>
                       <StatusIcon className="h-3.5 w-3.5" />
                       {rec.status}
@@ -175,7 +190,7 @@ function HistoryContent() {
           </div>
         </div>
 
-        {/* Pagination */}
+
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-12">
             <button

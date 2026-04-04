@@ -27,7 +27,7 @@ import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookSe
 import { useInView } from "react-intersection-observer";
 import { BOOK_CATEGORIES, BOOKS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
-// ---------- Constants ----------
+
 
 
 const emptyFormData = {
@@ -108,7 +108,6 @@ export default function AdminBookManagementPage() {
           setShowModal(false);
           setFormData(emptyFormData);
           setEditingBook(null);
-          // Force a full page reload to ensure everything is in sync
           setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(response.message || "Failed to update book");
@@ -119,7 +118,6 @@ export default function AdminBookManagementPage() {
           toast.success("Book added successfully!");
           setShowModal(false);
           setFormData(emptyFormData);
-          // Force a full page reload to ensure everything is in sync
           setTimeout(() => window.location.reload(), 1000);
         } else {
           toast.error(response.message || "Failed to add book");
@@ -136,7 +134,6 @@ export default function AdminBookManagementPage() {
       const response = await bookService.deleteBook(id);
       if (response.code === 200 || response.code === 201) {
         toast.success("Book deleted successfully!");
-        // Force a full page reload to ensure everything is in sync
         setTimeout(() => window.location.reload(), 1000);
       } else {
         toast.error(response.message || "Failed to delete book");
@@ -287,7 +284,7 @@ export default function AdminBookManagementPage() {
   );
 }
 
-// ========== SUB-COMPONENT: ADMIN CATEGORY SECTION ==========
+
 function AdminCategorySection({ 
   category, 
   BookCard 

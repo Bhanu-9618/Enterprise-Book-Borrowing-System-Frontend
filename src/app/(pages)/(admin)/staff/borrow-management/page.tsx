@@ -48,7 +48,7 @@ const statusConfig: Record<string, { bg: string; text: string; icon: React.Eleme
 const getStatus = (s: string) =>
   statusConfig[s] || { bg: "bg-slate-50", text: "text-slate-700", icon: XCircle };
 
-// ========== COMPONENT ==========
+
 function BorrowManagementContent() {
   const searchParams = useSearchParams();
   const [records, setRecords] = useState<BorrowRecord[]>([]);
@@ -59,7 +59,7 @@ function BorrowManagementContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<string | null>(searchParams.get("status"));
 
-  // Sync state with URL search params (Navbar navigation)
+
   useEffect(() => {
     const status = searchParams.get("status");
     setFilterStatus(status);
@@ -78,7 +78,7 @@ function BorrowManagementContent() {
     }
 
     if (response) {
-      // Corrected: Using 'history' key directly from PaginatedBorrowResponse
+
       setRecords(response.history || []);
       setTotalPages(response.totalPages || 1);
       setTotalItems(response.totalItems || 0);
@@ -95,7 +95,7 @@ function BorrowManagementContent() {
     fetchRecords(0);
   }, [fetchRecords]);
 
-  // Debounced search logic
+
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchRecords(0);
@@ -107,7 +107,7 @@ function BorrowManagementContent() {
   const [editingRecord, setEditingRecord] = useState<BorrowRecord | null>(null);
   const [formData, setFormData] = useState<Omit<BorrowRecord, "borrowid">>(emptyRecord);
 
-  // ----- Handlers -----
+
   const openAddModal = () => {
     setEditingRecord(null);
     setFormData(emptyRecord);
@@ -176,7 +176,7 @@ function BorrowManagementContent() {
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto px-4 py-6" style={{ maxWidth: "1800px" }}>
-        {/* Page Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -195,7 +195,7 @@ function BorrowManagementContent() {
           </Button>
         </div>
 
-        {/* Search by User ID + Filter */}
+
         <div className="mb-6 flex items-center justify-between gap-4">
           <div className="relative group max-w-xs flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-emerald-500" />
@@ -231,10 +231,10 @@ function BorrowManagementContent() {
           </div>
         </div>
 
-        {/* Borrow Records Table */}
+
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1200px]">
-            {/* Table Header */}
+
             <div className="grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3 bg-white border-b border-slate-100">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow Date</span>
@@ -246,7 +246,7 @@ function BorrowManagementContent() {
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
 
-            {/* Table Body */}
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
@@ -269,47 +269,47 @@ function BorrowManagementContent() {
                       className={`group grid grid-cols-[50px_0.7fr_0.7fr_0.7fr_0.6fr_0.5fr_0.5fr_90px] gap-3 px-5 py-3.5 items-center hover:bg-slate-50/60 transition-colors ${index !== records.length - 1 ? "border-b border-slate-50" : ""
                         }`}
                     >
-                      {/* ID */}
+
                       <span className="text-xs font-black text-slate-900">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
-                      {/* Borrow Date */}
+
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
                         <span className="text-xs font-bold text-slate-700">{rec.borrowdate || "—"}</span>
                       </div>
 
-                      {/* Due Date */}
+
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
                         <span className="text-xs font-bold text-slate-700">{rec.dueDate || "—"}</span>
                       </div>
 
-                      {/* Return Date */}
+
                       <span className="text-xs font-bold text-slate-600">
                         {rec.returnDate || (
                           <span className="text-slate-300 italic">—</span>
                         )}
                       </span>
 
-                      {/* Status */}
+
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold w-fit ${st.bg} ${st.text}`}>
                         <StatusIcon className="h-3 w-3" />
                         {rec.status}
                       </span>
 
-                      {/* Book ID */}
+
                       <div className="flex items-center gap-1.5">
                         <BookOpen className="h-3 w-3 text-slate-400 shrink-0" />
                         <span className="text-xs font-black text-slate-800">#{rec.bookid}</span>
                       </div>
 
-                      {/* User ID */}
+
                       <div className="flex items-center gap-1.5">
                         <User className="h-3 w-3 text-slate-400 shrink-0" />
                         <span className="text-xs font-black text-slate-800">#{rec.userid}</span>
                       </div>
 
-                      {/* Actions */}
+
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEditModal(rec)}
@@ -326,7 +326,7 @@ function BorrowManagementContent() {
           </div>
         </div>
 
-        {/* Pagination */}
+
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button
@@ -350,7 +350,7 @@ function BorrowManagementContent() {
         )}
       </main>
 
-      {/* ========== ADD / EDIT MODAL ========== */}
+
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div
@@ -359,7 +359,7 @@ function BorrowManagementContent() {
           />
 
           <div className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
+
             <div className="flex items-center justify-between px-8 pt-8 pb-4">
               <div>
                 <h2 className="text-xl font-black text-slate-900">
@@ -379,10 +379,10 @@ function BorrowManagementContent() {
               </button>
             </div>
 
-            {/* Form */}
+
             <div className="px-8 pb-8 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
-                {/* Book ID */}
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Book ID</label>
                   <div className="relative group">
@@ -391,7 +391,7 @@ function BorrowManagementContent() {
                   </div>
                 </div>
 
-                {/* User ID */}
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">User ID</label>
                   <div className="relative group">
@@ -403,7 +403,7 @@ function BorrowManagementContent() {
 
               {editingRecord && (
                 <>
-                  {/* Borrow Date */}
+
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Borrow Date</label>
                     <div className="relative group">
@@ -413,7 +413,7 @@ function BorrowManagementContent() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Due Date */}
+
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Due Date</label>
                       <div className="relative group">
@@ -422,7 +422,7 @@ function BorrowManagementContent() {
                       </div>
                     </div>
 
-                    {/* Return Date */}
+
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Return Date</label>
                       <div className="relative group">
@@ -432,7 +432,7 @@ function BorrowManagementContent() {
                     </div>
                   </div>
 
-                  {/* Status */}
+
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Status</label>
                     <div className="flex gap-2">
@@ -457,7 +457,7 @@ function BorrowManagementContent() {
                 </>
               )}
 
-              {/* Save Button */}
+
               <div className="pt-3">
                 <Button
                   onClick={handleSave}

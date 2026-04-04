@@ -21,7 +21,7 @@ import { borrowService, OverdueRecord } from "@/src/services/borrowService";
 import { ITEMS_PER_PAGE } from "@/src/lib/constants";
 
 
-// ========== COMPONENT ==========
+
 function OverdueManagementContent() {
   const [records, setRecords] = useState<OverdueRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +64,7 @@ function OverdueManagementContent() {
     paymentStatus: "UNPAID",
   });
 
-  // ----- Handlers -----
+
   const handleFine = (rec: OverdueRecord) => {
     setFineDetails({
       fineAmount: rec.fineAmount,
@@ -100,7 +100,7 @@ function OverdueManagementContent() {
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto px-4 py-6" style={{ maxWidth: "1800px" }}>
-        {/* Page Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -120,7 +120,7 @@ function OverdueManagementContent() {
           </Link>
         </div>
 
-        {/* Search by User ID */}
+
         <div className="mb-6 flex items-center justify-between gap-4">
           <div className="relative group max-w-xs flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 transition-colors group-focus-within:text-rose-500" />
@@ -141,10 +141,10 @@ function OverdueManagementContent() {
           </div>
         </div>
 
-        {/* Overdue Records Table */}
+
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
           <div className="min-w-[1200px]">
-            {/* Table Header */}
+
             <div className="grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 bg-white border-b border-slate-100">
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Borrow ID</span>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">User ID</span>
@@ -153,7 +153,7 @@ function OverdueManagementContent() {
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
 
-            {/* Table Body */}
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="h-10 w-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mb-4" />
@@ -174,28 +174,28 @@ function OverdueManagementContent() {
                       className={`group grid grid-cols-[50px_1fr_1fr_1fr_160px] gap-3 px-8 py-5 items-center hover:bg-rose-50/30 transition-colors ${index !== records.length - 1 ? "border-b border-slate-50" : ""
                         }`}
                     >
-                      {/* ID */}
+
                       <span className="text-xs font-black text-slate-900">#{rec.borrowid.toString().padStart(3, "0")}</span>
 
-                      {/* User ID */}
+
                       <div className="flex items-center gap-1.5">
                         <User className="h-4 w-4 text-slate-400 shrink-0" />
                         <span className="text-sm font-black text-slate-800">User #{rec.userid}</span>
                       </div>
 
-                      {/* Fine Amount */}
+
                       <div className="flex items-center gap-1.5">
                         <Coins className="h-4 w-4 text-orange-500 shrink-0" />
                         <span className="text-sm font-black text-slate-900">Rs. {rec.fineAmount.toFixed(2)}</span>
                       </div>
 
-                      {/* Payment Status */}
+
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black w-fit uppercase tracking-tighter ${rec.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-orange-50 text-orange-700'}`}>
                         <div className={`h-1.5 w-1.5 rounded-full ${rec.paymentStatus === 'PAID' ? 'bg-emerald-500' : 'bg-orange-500'}`} />
                         {rec.paymentStatus}
                       </span>
 
-                      {/* Actions */}
+
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleFine(rec)}
@@ -213,7 +213,7 @@ function OverdueManagementContent() {
           </div>
         </div>
 
-        {/* Pagination */}
+
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button
@@ -238,7 +238,7 @@ function OverdueManagementContent() {
       </main>
 
 
-      {/* ========== FINE DETAILS MODAL ========== */}
+
       <FineDetailsModal
         show={showFineModal}
         onClose={() => setShowFineModal(false)}
@@ -250,7 +250,7 @@ function OverdueManagementContent() {
   );
 }
 
-// ========== FINE MODAL ==========
+
 function FineDetailsModal({
   show,
   onClose,

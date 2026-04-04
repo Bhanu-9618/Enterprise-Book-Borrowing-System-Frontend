@@ -17,8 +17,6 @@ export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Defers the state update until immediately after paint, avoiding
-    // the "synchronous cascading render" warning from React/Linters.
     const timer = setTimeout(() => {
       setHydrated(true);
     }, 0);
@@ -28,13 +26,13 @@ export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
   useEffect(() => {
     if (!hydrated) return;
 
-    // If not authenticated, redirect to signin
+
     if (!token) {
       router.replace(`/auth/signin?redirect=${pathname}`);
       return;
     }
 
-    // Role-based protection
+
     if (allowedRoles && role && !allowedRoles.includes(role)) {
       if (role === 'ADMIN') {
         router.replace('/staff');

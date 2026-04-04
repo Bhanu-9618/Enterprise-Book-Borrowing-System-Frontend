@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/src/components/ui/button";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import Cookies from "js-cookie";
@@ -10,47 +10,13 @@ import {
   BookOpen,
   Menu,
   X,
-  Search,
   Sparkles,
-  BookMarked,
   Users,
   User,
   LogOut,
   ChevronDown,
   ArrowRight,
-  GraduationCap,
-  Layers,
-  FlaskConical,
-  Palette,
-  Music,
-  Heart,
-  Briefcase,
-  Gamepad2,
-  Cpu,
-  Calculator,
 } from "lucide-react";
-
-const navLinks: { href: string; label: string }[] = [
-  // { href: "/", label: "Home" },
-  // { href: "/explore", label: "Explore" },
-];
-
-const categories = [
-  { icon: BookMarked, label: "Fiction", count: "{fiction_count}", color: "text-rose-500", bg: "bg-rose-50" },
-  { icon: GraduationCap, label: "Academic", count: "{academic_count}", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: FlaskConical, label: "Science", count: "{science_count}", color: "text-emerald-500", bg: "bg-emerald-50" },
-  { icon: Cpu, label: "Technology", count: "{tech_count}", color: "text-slate-500", bg: "bg-slate-100" },
-  { icon: Palette, label: "Arts & Design", count: "{arts_count}", color: "text-purple-500", bg: "bg-purple-50" },
-  { icon: Music, label: "Music", count: "{music_count}", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: Heart, label: "Health", count: "{health_count}", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: Briefcase, label: "Business", count: "{business_count}", color: "text-amber-600", bg: "bg-amber-50" },
-  { icon: Calculator, label: "Mathematics", count: "{math_count}", color: "text-cyan-600", bg: "bg-cyan-50" },
-  { icon: Gamepad2, label: "Entertainment", count: "{entertainment_count}", color: "text-orange-500", bg: "bg-orange-50" },
-  { icon: Users, label: "Social Sciences", count: "{social_science_count}", color: "text-teal-600", bg: "bg-teal-50" },
-  { icon: Layers, label: "History", count: "{history_count}", color: "text-brown-600", bg: "bg-stone-100" },
-];
-
-const quickSearchSuggestions: string[] = [];
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -63,60 +29,28 @@ export default function Navbar() {
   
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    // Delay setting hydrated state to allow for initial render match without triggering hydration mismatch errors
     const timer = setTimeout(() => {
       setHydrated(true);
     }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const megaRef = useRef<HTMLDivElement>(null);
-  const megaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const onScroll = () => { /* No longer needed for background state */ };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const closeSearch = useCallback(() => {
-    setSearchOpen(false);
-    setSearchQuery("");
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen || searchOpen ? "hidden" : "";
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [mobileOpen, searchOpen]);
+  }, [mobileOpen]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        closeSearch();
-        setMegaOpen(false);
+        setMobileOpen(false);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [closeSearch]);
-
-  useEffect(() => {
-    if (searchOpen) setTimeout(() => searchInputRef.current?.focus(), 100);
-  }, [searchOpen]);
-
-  const openMega = useCallback(() => {
-    if (megaTimerRef.current) clearTimeout(megaTimerRef.current);
-    setMegaOpen(true);
-  }, []);
-  const closeMega = useCallback(() => {
-    megaTimerRef.current = setTimeout(() => setMegaOpen(false), 200);
   }, []);
 
   const handleLogout = () => {
@@ -126,13 +60,11 @@ export default function Navbar() {
     router.push("/auth/signin");
   };
 
-  // Redirect logged-in users away from public pages if they try to visit them manually ("by force")
   useEffect(() => {
     if (!hydrated) return;
 
     const cookieToken = Cookies.get('token');
-    
-    // Safety: If cookie is gone but store has token, clear store to avoid loop
+
     if (!cookieToken && token) {
       clearAuth();
       return;
@@ -146,12 +78,6 @@ export default function Navbar() {
     }
   }, [hydrated, token, pathname, isAdmin, router, clearAuth]);
 
-  const filteredSuggestions = searchQuery
-    ? quickSearchSuggestions.filter((s) =>
-      s.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    : [];
-
   return (
     <>
       <nav
@@ -159,7 +85,7 @@ export default function Navbar() {
       >
 
         <div className="mx-auto flex h-16 max-w-full items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Dynamic logo routing: Sends logged-in users to their dashboard, guests to the landing page */}
+
           <Link href={!hydrated ? "/" : isAuth ? (isAdmin ? "/staff" : "/users") : "/"} className="group relative flex items-center gap-2.5">
             <span className="absolute -inset-2 rounded-2xl bg-blue-500/10 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-100" />
             <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40 group-hover:rotate-3">
@@ -177,46 +103,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-0.5">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="group relative px-4 py-2 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:text-blue-700"
-              >
-                {link.label}
-                <span className="absolute inset-x-2 -bottom-px h-[2px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-blue-500 to-sky-500 transition-transform duration-300 group-hover:scale-x-100" />
-              </Link>
-            ))}
-
-            {false && (
-            <div
-              className="relative"
-              ref={megaRef}
-              onMouseEnter={openMega}
-              onMouseLeave={closeMega}
-            >
-              <button className="group relative flex items-center gap-1 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:text-blue-700">
-                Browse
-                <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform duration-300 ${megaOpen ? "rotate-180 text-blue-600" : ""
-                    }`}
-                />
-                <span className="absolute inset-x-2 -bottom-px h-[2px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-blue-500 to-sky-500 transition-transform duration-300 group-hover:scale-x-100" />
-              </button>
-            </div>
-            )}
-          </div>
-
           <div className="hidden md:flex items-center gap-2.5">
-            {false && <button
-              onClick={() => setSearchOpen(true)}
-              className="group flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 px-4 py-[5px] text-sm text-gray-500 transition-all duration-300 hover:border-blue-300 hover:bg-white hover:text-blue-600 hover:shadow-xl hover:shadow-blue-500/10"
-            >
-              <Search className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" strokeWidth={2.5} />
-              <span className="hidden lg:inline font-medium">Search Library</span>
-            </button>}
-
             <div className="mx-1 h-6 w-px bg-gray-200" />
 
             {!hydrated ? (
@@ -307,7 +194,7 @@ export default function Navbar() {
                     </div>
                   </div>
                   
-                  {/* Profile Dropdown */}
+
                   {profileOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
@@ -363,126 +250,6 @@ export default function Navbar() {
       </nav>
 
       <div
-        className={`fixed inset-x-0 z-40 hidden md:block transition-all duration-300 ${megaOpen
-          ? "pointer-events-auto opacity-100 translate-y-0"
-          : "pointer-events-none opacity-0 -translate-y-2"
-          }`}
-        style={{ top: "66px" }}
-        onMouseEnter={openMega}
-        onMouseLeave={closeMega}
-      >
-        <div className="absolute inset-x-0 top-0 h-full bg-white/95 backdrop-blur-2xl shadow-2xl shadow-blue-500/[0.06] border-b border-gray-100" />
-
-        <div className="relative mx-auto max-w-full px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex flex-col">
-            <h3 className="mb-6 flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">
-              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              Explore Categories
-            </h3>
-            <div className="grid grid-cols-4 gap-4">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.label}
-                  href={`/explore?category=${cat.label.toLowerCase()}`}
-                  className="group flex items-center gap-4 rounded-2xl border border-transparent p-4 transition-all duration-300 hover:border-blue-100 hover:bg-white hover:shadow-xl hover:shadow-blue-500/5"
-                >
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${cat.bg} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
-                    <cat.icon className={`h-5.5 w-5.5 ${cat.color}`} strokeWidth={2.2} />
-                  </span>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
-                      {cat.label}
-                    </p>
-                    <p className="text-[11px] font-medium text-gray-400">{cat.count} collections</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={`fixed inset-0 z-[60] bg-black/50 backdrop-blur-md transition-opacity duration-300 ${searchOpen ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
-        onClick={closeSearch}
-      />
-      <div
-        className={`fixed inset-x-0 top-0 z-[70] flex justify-center pt-[10vh] px-4 transition-all duration-400 ${searchOpen
-          ? "pointer-events-auto opacity-100 translate-y-0"
-          : "pointer-events-none opacity-0 -translate-y-8"
-          }`}
-      >
-        <div className="w-full max-w-2xl overflow-hidden rounded-[2.5rem] border border-white/20 bg-white/95 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] backdrop-blur-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center gap-4 px-7 py-6">
-            <Search className="h-6 w-6 shrink-0 text-blue-600" strokeWidth={2.5} />
-            <input
-              ref={searchInputRef}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by title, author, or ISBN..."
-              className="flex-1 bg-transparent text-lg font-bold text-gray-800 outline-none placeholder:text-gray-300"
-            />
-            <button
-              onClick={closeSearch}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-100 text-gray-400 transition-all duration-200 hover:bg-rose-50 hover:text-rose-500 hover:rotate-90 shadow-sm"
-            >
-              <X className="h-5 w-5" strokeWidth={2.5} />
-            </button>
-          </div>
-
-          {(searchQuery || filteredSuggestions.length > 0) && (
-            <div className="border-t border-gray-100 px-4 py-4 max-h-[60vh] overflow-y-auto">
-              {searchQuery && (
-                <div className="px-3 mb-3">
-                  <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">
-                    Search Results
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                {filteredSuggestions.map((s) => (
-                  <button
-                    key={s}
-                    className="flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left transition-all duration-200 hover:bg-gray-50 group hover:translate-x-1"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm group-hover:border-blue-200 transition-colors">
-                      <BookOpen className="h-4 w-4 text-blue-500" strokeWidth={2} />
-                    </div>
-                    <span className="flex-1 truncate text-sm font-bold text-gray-700 group-hover:text-blue-700">
-                      {s}
-                    </span>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-gray-200 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
-                  </button>
-                ))}
-                {searchQuery && filteredSuggestions.length === 0 && (
-                  <div className="col-span-2 py-12 text-center">
-                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-gray-50 mb-4 opacity-50">
-                      <Search className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <p className="text-sm font-bold text-gray-500">
-                      Zero matches for &ldquo;{searchQuery}&rdquo;
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1 font-medium">Try searching for something else</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="bg-gray-50/80 px-7 py-4 flex items-center justify-end border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lumina Search v2.0</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
         className={`fixed inset-0 z-40 bg-black/25 backdrop-blur-sm transition-opacity duration-300 md:hidden ${mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         onClick={() => setMobileOpen(false)}
@@ -495,44 +262,6 @@ export default function Navbar() {
         <div className="absolute inset-y-0 left-0 w-[2.5px] bg-blue-500 opacity-70" />
 
         <div className="flex flex-col gap-1 overflow-y-auto px-5 pt-20 pb-8">
-          {/* <button
-            onClick={() => { setMobileOpen(false); setTimeout(() => setSearchOpen(true), 200); }}
-            className="mb-4 flex items-center gap-3 rounded-xl border border-gray-200/70 bg-gray-50/70 px-4 py-3 text-sm font-bold text-gray-500 transition-all hover:border-blue-300 hover:bg-white hover:text-blue-600 shadow-sm"
-          >
-            <Search className="h-4 w-4 text-blue-500" strokeWidth={2.5} />
-            Search library...
-          </button> */}
-
-          {navLinks.map((link, i) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 rounded-2xl px-4 py-4 text-[15px] font-bold text-gray-700 transition-all duration-200 hover:bg-blue-50/70 hover:text-blue-700 hover:translate-x-1"
-              style={{ animationDelay: `${100 + i * 60}ms` }}
-            >
-              {link.label}
-            </Link>
-          ))}
-
-          {/* <p className="mt-8 mb-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
-            Browse
-          </p>
-          {categories.map((cat, i) => (
-            <Link
-              key={cat.label}
-              href={`/explore?category=${cat.label.toLowerCase()}`}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-4 rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-gray-50 hover:translate-x-1"
-              style={{ animationDelay: `${220 + i * 50}ms` }}
-            >
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${cat.bg}`}>
-                <cat.icon className={`h-5 w-5 ${cat.color}`} strokeWidth={2.2} />
-              </span>
-              <span className="text-sm font-bold text-gray-800">{cat.label}</span>
-              <span className="ml-auto text-[10px] font-black text-gray-300">{cat.count}</span>
-            </Link>
-          ))} */}
 
           <div className="my-6 h-px bg-gray-100" />
 
@@ -660,13 +389,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes gradientShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-      `}</style>
     </>
   );
 }

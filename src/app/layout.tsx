@@ -18,19 +18,23 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+import Providers from "@/src/components/Providers";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={jakarta.variable}>
       <body className={jakarta.className}>
-        <Toaster position="top-right" reverseOrder={false} />
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
+        <Providers>
+          <Toaster position="top-right" reverseOrder={false} />
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </Providers>
         <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
           <div className="mx-auto max-w-7xl px-6 sm:px-12 lg:px-20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-              {/* Brand Column */}
+
               <div className="space-y-6">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 shadow-lg shadow-blue-500/20">
@@ -45,11 +49,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   Empowering your reading journey through our state-of-the-art digital library system. Access knowledge anytime, anywhere.
                 </p>
                 <div className="flex gap-4">
-                  {/* Social Icons would go here */}
+
                 </div>
               </div>
 
-              {/* Quick Links */}
+
               <div>
                 <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Quick Links</h4>
                 <ul className="space-y-4 text-sm font-medium">
@@ -60,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
 
 
-              {/* Contact Column */}
+
               <div>
                 <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Contact Us</h4>
                 <ul className="space-y-5">

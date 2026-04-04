@@ -41,14 +41,14 @@ export default function SignupPage() {
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    // Name validation
+
     if (!formData.name.trim()) {
       newErrors.name = "Full name is required";
     } else if (formData.name.trim().length < 2) {
       newErrors.name = "Name is too short";
     }
 
-    // Email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       newErrors.email = "Email address is required";
@@ -56,7 +56,7 @@ export default function SignupPage() {
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Phone validation
+
     const phoneRegex = /^\d{10}$/;
     if (!formData.phone) {
       newErrors.phone = "Phone number is required";
@@ -64,14 +64,14 @@ export default function SignupPage() {
       newErrors.phone = "Phone number must be exactly 10 digits (e.g. 0771234567)";
     }
 
-    // Password validation
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters long";
     }
 
-    // Address validation
+
     if (!formData.address.trim()) {
       newErrors.address = "Physical address is required";
     }
@@ -83,11 +83,11 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Clear previous errors
+
     setGeneralError(null);
     setFieldErrors({});
 
-    // Client-side validation
+
     if (!validate()) {
       setGeneralError("Please correct the errors before submitting.");
       return;
@@ -111,12 +111,12 @@ export default function SignupPage() {
         message?: string
       };
 
-      // Handle structured errors from backend (e.g. Spring Validation)
+
       if (errorData.errors && typeof errorData.errors === 'object') {
         setFieldErrors(errorData.errors);
         setGeneralError("Validation failed. Please check the specific fields.");
       } else if (errorData.message) {
-        // Handle specific message but check if it's the generic one
+
         if (errorData.message.toLowerCase().includes("validation failed")) {
           setGeneralError("Registration failed due to invalid data. Please check all fields.");
         } else {
@@ -133,7 +133,7 @@ export default function SignupPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear field error when user starts typing
+
     if (fieldErrors[name]) {
       setFieldErrors(prev => {
         const next = { ...prev };
@@ -145,7 +145,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-24 relative overflow-hidden">
-      {/* High-quality background image */}
+
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/Lumina signup.jpg"
@@ -195,7 +195,7 @@ export default function SignupPage() {
           <CardContent className="px-10 pb-12 pt-4">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* Name */}
+
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Full Name</label>
                   <div className="relative group">
@@ -211,7 +211,7 @@ export default function SignupPage() {
                   {fieldErrors.name && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.name}</p>}
                 </div>
 
-                {/* Email */}
+
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Email Address</label>
                   <div className="relative group">
@@ -228,7 +228,7 @@ export default function SignupPage() {
                   {fieldErrors.email && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.email}</p>}
                 </div>
 
-                {/* Phone */}
+
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Phone Number</label>
                   <div className="relative group">
@@ -244,7 +244,7 @@ export default function SignupPage() {
                   {fieldErrors.phone && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.phone}</p>}
                 </div>
 
-                {/* Password */}
+
                 <div className="space-y-2">
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Password</label>
                   <div className="relative group">
@@ -262,7 +262,7 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* Address */}
+
               <div className="space-y-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Physical Address</label>
                 <div className="relative group">
@@ -278,7 +278,7 @@ export default function SignupPage() {
                 {fieldErrors.address && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider ml-1 mt-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.address}</p>}
               </div>
 
-              {/* Membership Date */}
+
               <div className="space-y-2">
                 <label className="text-[11px] font-black uppercase tracking-widest text-slate-600 ml-1">Membership Start Date</label>
                 <div className="relative group">
@@ -326,7 +326,7 @@ export default function SignupPage() {
           </CardContent>
         </Card>
 
-        {/* Footer info text */}
+
         <p className="mt-10 text-center text-xs font-bold text-white/80 px-10 leading-relaxed uppercase tracking-widest drop-shadow-sm">
           By signing up, you agree to the Lumina Library Terms of Service and Privacy Policy. All your reading history is protected under our digital privacy guidelines.
         </p>
