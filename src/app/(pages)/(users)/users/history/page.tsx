@@ -120,9 +120,17 @@ function HistoryContent() {
 
           {/* Table Body */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 shadow-blue-500/20 shadow-lg"></div>
-              <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Retrieving history...</h3>
+            <div className="space-y-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="grid grid-cols-[100px_1fr_120px_120px_120px_130px] gap-4 px-8 py-6 items-center animate-pulse border-b border-slate-100">
+                  <div className="h-3 w-12 bg-slate-100 rounded" />
+                  <div className="h-4 w-16 bg-slate-100 rounded" />
+                  <div className="h-3 w-20 bg-slate-50 rounded" />
+                  <div className="h-3 w-20 bg-slate-50 rounded" />
+                  <div className="h-3 w-16 bg-slate-50 rounded" />
+                  <div className="h-6 w-20 bg-slate-100 rounded-xl" />
+                </div>
+              ))}
             </div>
           ) : records.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">

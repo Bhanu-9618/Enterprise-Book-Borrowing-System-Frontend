@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Hash,
-  BookMarked,
   Building2,
   Barcode,
   Copy,
@@ -20,13 +19,14 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
+import { bookService, Book } from "@/src/services/bookService";
 import { borrowService } from "@/src/services/borrowService";
 import toast from "react-hot-toast";
 import { useInView } from "react-intersection-observer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import Image from "next/image";
+import { BookSkeleton, CategorySkeleton } from "@/src/components/skeletons/BookSkeleton";
 
 import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
@@ -188,16 +188,13 @@ export default function UserDashboardPage() {
               </span>
             </div>
 
-            {!isSearching && searchResults?.books.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <BookMarked className="h-16 w-16 text-slate-200 mb-4" />
-                <h3 className="text-xl font-bold text-slate-400 mb-1">
-                  No books match &quot;{searchTerm || searchById}&quot;
-                </h3>
+            {isSearching ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <BookSkeleton key={i} />
+                ))}
               </div>
-            )}
-
-            {searchResults && searchResults.books.length > 0 && (
+            ) : searchResults && searchResults.books.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                   {searchResults.books.map((book) => (
@@ -275,7 +272,7 @@ export default function UserDashboardPage() {
                   </div>
                 )}
               </>
-            )}
+            ) : null}
           </div>
         ) : (
           <div className="space-y-16">
@@ -412,93 +409,96 @@ function CategorySection({
 
   return (
     <div ref={ref} className="space-y-6 min-h-[300px]">
-      {/* Category Title */}
-      <div className="relative text-center">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
-        <span className="relative z-10 px-10 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight py-2.5 max-w-max drop-shadow-sm uppercase">
-          {formatCategoryName(category)}
-          {isFetching && (
-            <span className="ml-4 inline-block h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          )}
-        </span>
-      </div>
+      {isFetching ? (
+        <CategorySkeleton />
+      ) : (
+        <>
+          {/* Category Title */}
+          <div className="relative text-center">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
+            <span className="relative z-10 px-10 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight py-2.5 max-w-max drop-shadow-sm uppercase">
+              {formatCategoryName(category)}
+            </span>
+          </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-        {data?.books.map((book) => (
-          <Card
-            key={book.id}
-            className="group relative bg-white/80 border-white/60 rounded-xl shadow-lg shadow-slate-900/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden flex flex-col backdrop-blur-2xl"
-          >
-            <CardContent className="p-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                  #{book.id.toString().padStart(3, "0")}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                    book.available ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"
-                  }`}
-                >
-                  <span className={`h-1 w-1 rounded-full ${book.available ? "bg-emerald-500" : "bg-rose-400"}`} />
-                  {book.available ? "In Stock" : "Out"}
-                </span>
-              </div>
-
-              <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
-              <p className="text-[10px] font-bold text-slate-500 mb-2 truncate">{book.author}</p>
-
-              <div className="space-y-1 mb-3 mt-auto">
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <Building2 className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="text-slate-500 font-medium truncate">{book.publisher}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <Barcode className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="text-slate-500 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <Copy className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="text-slate-500 font-medium">{book.availableCopies} copies</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => onBorrow(book)}
-                disabled={!book.available}
-                className={`w-full h-8 rounded-lg text-[11px] font-bold transition-all ${
-                  book.available
-                    ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }`}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {data?.books.map((book) => (
+              <Card
+                key={book.id}
+                className="group relative bg-white/80 border-white/60 rounded-xl shadow-lg shadow-slate-900/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden flex flex-col backdrop-blur-2xl"
               >
-                <BookOpenCheck className="h-3.5 w-3.5 mr-1.5" />
-                {book.available ? "Borrow" : "Unavailable"}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <CardContent className="p-3 flex-1 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                      #{book.id.toString().padStart(3, "0")}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                        book.available ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"
+                      }`}
+                    >
+                      <span className={`h-1 w-1 rounded-full ${book.available ? "bg-emerald-500" : "bg-rose-400"}`} />
+                      {book.available ? "In Stock" : "Out"}
+                    </span>
+                  </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <button
-            onClick={() => setPage(prev => Math.max(0, prev - 1))}
-            disabled={page === 0 || isFetching}
-            className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            <ChevronLeft className="h-3 w-3" />
-          </button>
-          <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wide">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
-            disabled={currentPage === totalPages || isFetching}
-            className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            <ChevronRight className="h-3 w-3" />
-          </button>
-        </div>
+                  <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
+                  <p className="text-[10px] font-bold text-slate-500 mb-2 truncate">{book.author}</p>
+
+                  <div className="space-y-1 mb-3 mt-auto">
+                    <div className="flex items-center gap-1.5 text-[10px]">
+                      <Building2 className="h-3 w-3 text-slate-300 shrink-0" />
+                      <span className="text-slate-500 font-medium truncate">{book.publisher}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px]">
+                      <Barcode className="h-3 w-3 text-slate-300 shrink-0" />
+                      <span className="text-slate-500 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px]">
+                      <Copy className="h-3 w-3 text-slate-300 shrink-0" />
+                      <span className="text-slate-500 font-medium">{book.availableCopies} copies</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => onBorrow(book)}
+                    disabled={!book.available}
+                    className={`w-full h-8 rounded-lg text-[11px] font-bold transition-all ${
+                      book.available
+                        ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    }`}
+                  >
+                    <BookOpenCheck className="h-3.5 w-3.5 mr-1.5" />
+                    {book.available ? "Borrow" : "Unavailable"}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <button
+                onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                disabled={page === 0 || isFetching}
+                className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </button>
+              <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wide">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={currentPage === totalPages || isFetching}
+                className="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
