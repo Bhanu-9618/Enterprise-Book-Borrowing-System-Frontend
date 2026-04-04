@@ -37,7 +37,7 @@ function HistoryContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+
   const { id: userId } = useAuthStore();
 
   const fetchHistory = useCallback(async (page: number = 0) => {
@@ -51,12 +51,12 @@ function HistoryContent() {
       if (response) {
         setRecords(response.history || []);
         setTotalPages(response.totalPages || 1);
-        setTotalItems(response.totalItems || 0);
+
         setCurrentPage((response.currentPage ?? 0) + 1);
       } else {
         setRecords([]);
         setTotalPages(1);
-        setTotalItems(0);
+
       }
     } catch (error) {
       console.error("Failed to fetch history:", error);
