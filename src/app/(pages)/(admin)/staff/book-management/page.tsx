@@ -26,6 +26,7 @@ import { Input } from "@/src/components/ui/input";
 import { bookService, Book, PaginatedBooksResponse } from "@/src/services/bookService";
 import { useInView } from "react-intersection-observer";
 import { BOOK_CATEGORIES, BOOKS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
+import Image from "next/image";
 
 
 
@@ -152,7 +153,7 @@ export default function AdminBookManagementPage() {
   };
 
   const BookCard = ({ book }: { book: Book }) => (
-    <Card className="group relative bg-white border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col">
+    <Card className="group relative bg-white/80 border-white/60 rounded-xl shadow-lg shadow-slate-900/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden flex flex-col backdrop-blur-2xl">
       {deleteConfirm === book.id && (
         <div className="absolute inset-0 z-20 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center gap-2 p-3 text-center">
           <Trash2 className="h-6 w-6 text-rose-400" />
@@ -190,15 +191,29 @@ export default function AdminBookManagementPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="mx-auto px-4 py-8 max-w-[1800px]">
+    <div className="min-h-screen relative overflow-hidden bg-[#fafafa]">
+      
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/images/Admin dash.jpg"
+          alt="Lumina Library Dashboard Background"
+          fill
+          priority
+          quality={100}
+          className="object-cover transition-transform duration-1000 scale-105"
+        />
+        <div className="absolute inset-0 z-10 bg-black/5 transition-opacity duration-700" />
+        <div className="absolute inset-0 z-10 bg-white/20 backdrop-blur-[2px]" />
+      </div>
+
+      <main className="relative z-10 mx-auto px-4 py-8 max-w-[1800px]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
           <div>
-            <div className="flex items-center gap-2 mb-2"><Sparkles className="h-5 w-5 text-blue-400" /><span className="text-sm font-bold text-blue-600 uppercase tracking-widest">Admin Control</span></div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Catalog Management</h1>
-            <p className="text-slate-500 font-medium">Add, update or remove books from the library system.</p>
+            <div className="flex items-center gap-2 mb-2"><Sparkles className="h-5 w-5 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" /><span className="text-sm font-black text-amber-600 uppercase tracking-widest drop-shadow-sm">Admin Control</span></div>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2 drop-shadow-[0_2px_10px_rgba(255,255,255,1)]">Catalog Management</h1>
+            <p className="text-slate-800 font-bold text-lg drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)]">Add, update or remove books from the library system.</p>
           </div>
-          <Button onClick={() => { setEditingBook(null); setFormData(emptyFormData); setShowModal(true); }} className="h-12 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold shadow-lg shadow-blue-500/25 transition-all">
+          <Button onClick={() => { setEditingBook(null); setFormData(emptyFormData); setShowModal(true); }} className="h-12 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:-translate-y-0.5 transition-all drop-shadow-sm">
             <Plus className="h-5 w-5 mr-2" /> Add New Book
           </Button>
         </div>
@@ -217,8 +232,8 @@ export default function AdminBookManagementPage() {
         {(searchTerm.trim() || searchById.trim()) ? (
           <div className="space-y-8">
             <div className="relative text-center">
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
-              <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl font-serif font-black text-slate-800 flex items-center justify-center gap-4">
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
+              <span className="relative z-10 px-8 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl font-serif font-black text-slate-900 tracking-tight flex items-center justify-center gap-4 py-2 max-w-max drop-shadow-sm">
                 Search Results {isSearching && <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />}
               </span>
             </div>
@@ -326,8 +341,8 @@ function AdminCategorySection({
   return (
     <div ref={ref} className="space-y-6 min-h-[300px]">
       <div className="relative text-center">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/60" />
-        <span className="relative z-10 px-8 mx-auto bg-slate-50 text-2xl sm:text-3xl font-serif font-black text-slate-800 tracking-tight uppercase">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-slate-100/40" />
+        <span className="relative z-10 px-8 mx-auto bg-white/40 backdrop-blur-3xl rounded-full border border-white/60 text-2xl sm:text-3xl font-serif font-black text-slate-900 tracking-tight uppercase flex items-center justify-center gap-4 py-2 max-w-max drop-shadow-sm">
           {formatCategoryName(category)}
           {isLoading && (
             <span className="ml-4 inline-block h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
