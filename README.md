@@ -1,36 +1,31 @@
-# 📚 LuminaLibrary - Frontend 
+# 📚 Lumina Library - Enterprise Frontend
 
-![Next.js](https://img.shields.io/badge/Next.js-16.2.1-black?style=for-the-badge&logo=next.js)
-![React](https://img.shields.io/badge/React-19.2.4-blue?style=for-the-badge&logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)
+The high-performance, enterprise-grade user interface for **Lumina Library**, built with the cutting-edge **Next.js 16** and **React 19**. Designed for speed, accessibility, and a seamless user experience.
 
-This is the frontend application for **LuminaLibrary**, a high-performance, enterprise Library Management System. Built with the latest Next.js 16 and React 19, it provides a modern, responsive, and highly accessible user interface.
+---
 
-## 🌟 Key Features
+## ✨ Key Features
 
-* **Modern & Accessible UI:** Built with Tailwind CSS, shadcn/ui, and Radix UI for a clean, user-friendly, and fully accessible experience.
-* **Role-Based Dashboards:** Distinct and secure interfaces for Administrators and standard Users.
-* **Optimized Data Fetching:** Utilizes TanStack React Query for efficient server state caching, background updates, and pagination.
-* **Global State Management:** Fast and scalable client-side state management using Zustand.
-* **Interactive Elements:** Smooth carousels using Embla Carousel and scroll animations via React Intersection Observer and `tw-animate-css`.
-* **Secure Authentication:** Seamless JWT token management and local session handling using `js-cookie`.
-* **Real-time Notifications:** User-friendly alerts and feedback powered by React Hot Toast.
+### 🎨 Modern & Accessible UI
+* **Design System:** Crafted with **Tailwind CSS 4.0**, **shadcn/ui**, and **Radix UI** primitives.
+* **Animations:** Smooth scroll effects and interactive elements using `tw-animate-css` and Embla Carousel.
+* **Responsive:** Fully optimized for mobile, tablet, and desktop views.
 
-## 💻 Tech Stack
+### 🔐 Secure Experience
+* **Auth Management:** Secure JWT token handling and session persistence via `js-cookie`.
+* **Role-Based Views:** Dynamic dashboards and navigation tailored for `ADMIN` and `USER` roles.
 
-**Core Foundation:**
-* **Framework:** Next.js 16.2.1
-* **Library:** React & React DOM 19.2.4
-* **Language:** TypeScript ^5.0
+### ⚡ Performance & State
+* **Server State:** Optimized data fetching, caching, and background synchronization using **TanStack React Query 5**.
+* **Client State:** Lightweight and scalable global state management powered by **Zustand**.
+* **Real-time Feedback:** Interactive notifications and alerts using **React Hot Toast**.
 
-**Styling & UI:**
-* Tailwind CSS ^4.0
-* shadcn/ui & Radix UI Primitives
-* Lucide React (Icons)
-* clsx & tailwind-merge (Dynamic classes)
+---
 
-**State Management & Networking:**
-* Zustand ^5.0.12 (Global State)
-* TanStack React Query ^5.96.2 (Data Fetching)
-* Axios ^1.13.6 (HTTP Client)
+## 🛠️ Tech Stack
+
+* **Core:** Next.js 16.2, React 19, TypeScript 5.0
+* **Styling:** Tailwind CSS 4.0, Lucide Icons
+* **Networking:** Axios, TanStack React Query
+* **State:** Zustand
+* **Form Handling:** React Hook Form
