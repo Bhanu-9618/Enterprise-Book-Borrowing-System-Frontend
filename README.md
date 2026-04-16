@@ -28,4 +28,3 @@ The high-performance, enterprise-grade user interface for **Lumina Library**, bu
 * **Styling:** Tailwind CSS 4.0, Lucide Icons
 * **Networking:** Axios, TanStack React Query
 * **State:** Zustand
-* **Form Handling:** React Hook Form
