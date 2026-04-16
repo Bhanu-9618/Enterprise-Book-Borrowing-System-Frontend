@@ -48,8 +48,13 @@ export interface PaginatedUsersResponse {
 
 export const userService = {
     getUserCount: async (): Promise<number> => {
-        const response = await api.get('/user/count');
-        return response.data?.data || 0;
+        try {
+            const response = await api.get('/user/count');
+            return response.data?.data || 0;
+        } catch (error) {
+            console.error("Failed to fetch user count:", error);
+            return 0;
+        }
     },
 
     signup: async (userData: UserSignupData) => {

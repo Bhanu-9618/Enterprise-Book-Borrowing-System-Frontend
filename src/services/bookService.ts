@@ -21,8 +21,13 @@ export interface PaginatedBooksResponse {
 
 export const bookService = {
     getBookCount: async (): Promise<number> => {
-        const response = await api.get('/book/count');
-        return response.data?.data || 0;
+        try {
+            const response = await api.get('/book/count');
+            return response.data?.data || 0;
+        } catch (error) {
+            console.error("Failed to fetch book count:", error);
+            return 0;
+        }
     },
 
     getBooksByCategory: async (category: string, page: number = 0, size: number = 16): Promise<PaginatedBooksResponse | null> => {

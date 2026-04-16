@@ -60,18 +60,33 @@ export const borrowService = {
   },
 
   getBorrowCount: async (): Promise<number> => {
-    const response = await api.get('/borrow/count');
-    return response.data?.data || 0;
+    try {
+      const response = await api.get('/borrow/count');
+      return response.data?.data || 0;
+    } catch (error) {
+      console.error("Failed to fetch borrow count:", error);
+      return 0;
+    }
   },
 
   getRequestedBorrowCount: async (): Promise<number> => {
-    const response = await api.get('/borrow/requested/count');
-    return response.data?.data || 0;
+    try {
+      const response = await api.get('/borrow/requested/count');
+      return response.data?.data || 0;
+    } catch (error) {
+      console.error("Failed to fetch requested borrow count:", error);
+      return 0;
+    }
   },
 
   getOverdueBorrowCount: async (): Promise<number> => {
-    const response = await api.get('/borrow/overdue/count');
-    return response.data?.data || 0;
+    try {
+      const response = await api.get('/borrow/overdue/count');
+      return response.data?.data || 0;
+    } catch (error) {
+      console.error("Failed to fetch overdue borrow count:", error);
+      return 0;
+    }
   },
 
   getAllBorrows: async (page: number = 0, size: number = 10): Promise<PaginatedBorrowResponse | null> => {
