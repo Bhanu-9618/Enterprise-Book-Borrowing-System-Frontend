@@ -166,17 +166,17 @@ export default function AdminBookManagementPage() {
       )}
       <CardContent className="p-3 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[9px] font-black text-slate-300 uppercase">#{book.id.toString().padStart(3, "0")}</span>
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">#{book.id.toString().padStart(3, "0")}</span>
           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${book.available ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
             {book.available ? "In Stock" : "Out"}
           </span>
         </div>
         <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
-        <p className="text-[10px] font-medium text-slate-400 mb-2 truncate">{book.author}</p>
-        <div className="space-y-1 mb-3 mt-auto text-slate-500">
-           <div className="flex items-center gap-1.5 text-[10px]"><Building2 className="h-3 w-3 opacity-50 shrink-0" /><span className="truncate">{book.publisher}</span></div>
-           <div className="flex items-center gap-1.5 text-[10px]"><Barcode className="h-3 w-3 opacity-50 shrink-0" /><span className="font-mono text-[9px] truncate">{book.isbn}</span></div>
-           <div className="flex items-center gap-1.5 text-[10px]"><Copy className="h-3 w-3 opacity-50 shrink-0" /><span>{book.availableCopies} copies</span></div>
+        <p className="text-[10px] font-bold text-slate-700 mb-2 truncate">{book.author}</p>
+        <div className="space-y-1 mb-3 mt-auto">
+           <div className="flex items-center gap-1.5 text-[10px]"><Building2 className="h-3 w-3 text-slate-400 shrink-0" /><span className="text-slate-700 font-medium truncate">{book.publisher}</span></div>
+           <div className="flex items-center gap-1.5 text-[10px]"><Barcode className="h-3 w-3 text-slate-400 shrink-0" /><span className="text-slate-700 font-medium font-mono text-[9px] truncate">{book.isbn}</span></div>
+           <div className="flex items-center gap-1.5 text-[10px]"><Copy className="h-3 w-3 text-slate-400 shrink-0" /><span className="text-slate-700 font-medium">{book.availableCopies} copies</span></div>
         </div>
         <div className="flex items-center gap-2 pt-2 border-t border-slate-50 mt-1">
           <button onClick={() => handleEdit(book)} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">

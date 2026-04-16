@@ -204,7 +204,7 @@ export default function UserDashboardPage() {
                     >
                       <CardContent className="p-3 flex-1 flex flex-col">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                             #{book.id.toString().padStart(3, "0")}
                           </span>
                           <span
@@ -217,19 +217,19 @@ export default function UserDashboardPage() {
                           </span>
                         </div>
                         <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
-                        <p className="text-[10px] font-bold text-slate-500 mb-2 truncate">{book.author}</p>
+                        <p className="text-[10px] font-bold text-slate-700 mb-2 truncate">{book.author}</p>
                         <div className="space-y-1 mb-3 mt-auto">
                           <div className="flex items-center gap-1.5 text-[10px]">
-                            <Building2 className="h-3 w-3 text-slate-300 shrink-0" />
-                            <span className="text-slate-500 font-medium truncate">{book.publisher}</span>
+                            <Building2 className="h-3 w-3 text-slate-400 shrink-0" />
+                            <span className="text-slate-700 font-medium truncate">{book.publisher}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-[10px]">
-                            <Barcode className="h-3 w-3 text-slate-300 shrink-0" />
-                            <span className="text-slate-500 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
+                            <Barcode className="h-3 w-3 text-slate-400 shrink-0" />
+                            <span className="text-slate-700 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-[10px]">
-                            <Copy className="h-3 w-3 text-slate-300 shrink-0" />
-                            <span className="text-slate-500 font-medium">{book.availableCopies} copies</span>
+                            <Copy className="h-3 w-3 text-slate-400 shrink-0" />
+                            <span className="text-slate-700 font-medium">{book.availableCopies} copies</span>
                           </div>
                         </div>
                         <Button
@@ -429,7 +429,7 @@ function CategorySection({
               >
                 <CardContent className="p-3 flex-1 flex flex-col">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                       #{book.id.toString().padStart(3, "0")}
                     </span>
                     <span
@@ -443,20 +443,20 @@ function CategorySection({
                   </div>
 
                   <h3 className="text-xs font-black text-slate-900 leading-snug mb-0.5 line-clamp-2">{book.title}</h3>
-                  <p className="text-[10px] font-bold text-slate-500 mb-2 truncate">{book.author}</p>
+                  <p className="text-[10px] font-bold text-slate-700 mb-2 truncate">{book.author}</p>
 
                   <div className="space-y-1 mb-3 mt-auto">
                     <div className="flex items-center gap-1.5 text-[10px]">
-                      <Building2 className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-slate-500 font-medium truncate">{book.publisher}</span>
+                       <Building2 className="h-3 w-3 text-slate-400 shrink-0" />
+                       <span className="text-slate-700 font-medium truncate">{book.publisher}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px]">
-                      <Barcode className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-slate-500 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
+                      <Barcode className="h-3 w-3 text-slate-400 shrink-0" />
+                      <span className="text-slate-700 font-medium font-mono text-[9px] truncate">{book.isbn}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px]">
-                      <Copy className="h-3 w-3 text-slate-300 shrink-0" />
-                      <span className="text-slate-500 font-medium">{book.availableCopies} copies</span>
+                      <Copy className="h-3 w-3 text-slate-400 shrink-0" />
+                      <span className="text-slate-700 font-medium">{book.availableCopies} copies</span>
                     </div>
                   </div>
 
