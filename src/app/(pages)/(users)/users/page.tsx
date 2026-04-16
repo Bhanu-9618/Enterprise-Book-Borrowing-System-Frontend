@@ -28,7 +28,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { BookSkeleton, CategorySkeleton } from "@/src/components/skeletons/BookSkeleton";
 
-import { BOOK_CATEGORIES, ITEMS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
+import { BOOK_CATEGORIES, BOOKS_PER_PAGE, formatCategoryName } from "@/src/lib/constants";
 
 
 export default function UserDashboardPage() {
@@ -76,7 +76,7 @@ export default function UserDashboardPage() {
         return book ? { totalItems: 1, books: [book], totalPages: 1, currentPage: 0 } : { totalItems: 0, books: [], totalPages: 0, currentPage: 0 };
       }
       if (debouncedSearchTerm.trim().length > 0) {
-        return await bookService.searchBooks(debouncedSearchTerm, searchPage, ITEMS_PER_PAGE);
+        return await bookService.searchBooks(debouncedSearchTerm, searchPage, BOOKS_PER_PAGE);
       }
       return null;
     },
@@ -393,7 +393,7 @@ function CategorySection({
 
   const { data, isFetching } = useQuery({
     queryKey: ['books', 'category', category, page],
-    queryFn: () => bookService.getBooksByCategory(category, page, ITEMS_PER_PAGE),
+    queryFn: () => bookService.getBooksByCategory(category, page, BOOKS_PER_PAGE),
     enabled: inView,
     staleTime: 5 * 60 * 1000,
   });
